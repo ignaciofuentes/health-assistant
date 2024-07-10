@@ -9,7 +9,7 @@ frontend:
   phases:
     build:
       commands:
-        - mkdir ./dist && touch ./dist/index.html
+        - mkdir ./dist && cp index.html ./dist
   artifacts:
     baseDirectory: dist
     files:
