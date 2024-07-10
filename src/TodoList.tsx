@@ -25,6 +25,8 @@ const TodoList = () => {
     try {
       await client.models.Todo.create({
         content: `${dateTimeNow.getUTCMilliseconds()}`,
+        name:"hello",
+        isDone:false
       });
     } catch (error: unknown) {
       if (error instanceof GraphQLError) {
