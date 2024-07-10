@@ -5,7 +5,7 @@ import { Amplify } from "aws-amplify";
 import { Authenticator, useAuthenticator } from "@aws-amplify/ui-react-native";
 import outputs from "./amplify_outputs.json";
 import TodoList from './src/TodoList';
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createDrawerNavigator, DrawerItem } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import Chat from './src/Chat';
 const Drawer = createDrawerNavigator();
@@ -19,13 +19,15 @@ const App = () => {
     <Authenticator.Provider>
     <Authenticator>
       <SafeAreaView style={styles.container}>
-        <SignOutButton />
+        
         <NavigationContainer>
-    <Drawer.Navigator initialRouteName="Home">
-      <Drawer.Screen name="Home" component={TodoList} />
-      <Drawer.Screen name="Notifications" component={Chat} />
-    </Drawer.Navigator>
-  </NavigationContainer>
+          <Drawer.Navigator initialRouteName="Chat" drawerContent={(props) => <CustomDrawerContent {...props} />}>
+            <Drawer.Screen name="Chat" component={TodoList} />
+            <Drawer.Screen name="My Files" component={Chat} />
+            
+
+          </Drawer.Navigator>
+        </NavigationContainer>
       </SafeAreaView>
     </Authenticator>
   </Authenticator.Provider>
@@ -35,25 +37,28 @@ const App = () => {
 };
 
 
-const App2 = () => {
+import {
+  DrawerContentScrollView,
+  DrawerItemList,
+} from '@react-navigation/drawer';
+
+function CustomDrawerContent(props:any) {
   return (
-    <Authenticator.Provider>
-      <Authenticator>
-        <SafeAreaView style={styles.container}>
-          <SignOutButton />
-          <TodoList />
-        </SafeAreaView>
-      </Authenticator>
-    </Authenticator.Provider>
+    <DrawerContentScrollView {...props}>
+      <DrawerItemList {...props} />
+    <SignOutButton />
+    </DrawerContentScrollView>
   );
-};
+}
+
 const SignOutButton = () => {
   const { signOut } = useAuthenticator();
 
   return (
-    <View style={styles.signOutButton}>
-      <Button title="Sign Out" onPress={signOut} />
-    </View>
+    <DrawerItem
+    label="Signout"
+    onPress={signOut}
+  />
   );
 };
 
