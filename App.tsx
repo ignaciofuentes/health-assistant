@@ -1,6 +1,5 @@
 import 'react-native-gesture-handler';
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Button, SafeAreaView } from 'react-native';
+import { StyleSheet, Text, View, Button, SafeAreaView, Alert } from 'react-native';
 import { Amplify } from "aws-amplify";
 import { Authenticator, useAuthenticator } from "@aws-amplify/ui-react-native";
 import outputs from "./amplify_outputs.json";
@@ -46,7 +45,7 @@ function CustomDrawerContent(props:any) {
   return (
     <DrawerContentScrollView {...props}>
       <DrawerItemList {...props} />
-    <SignOutButton />
+      <SignOutButton />
     </DrawerContentScrollView>
   );
 }
@@ -54,10 +53,22 @@ function CustomDrawerContent(props:any) {
 const SignOutButton = () => {
   const { signOut } = useAuthenticator();
 
+  const doConfirmBeforeSignout = ()=>{
+      Alert.alert('Sign out?', '', [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+        {text: 'Sign Out', onPress: () => signOut()},
+      ]);
+
+  }
+
   return (
     <DrawerItem
     label="Signout"
-    onPress={signOut}
+    onPress={doConfirmBeforeSignout}
   />
   );
 };
