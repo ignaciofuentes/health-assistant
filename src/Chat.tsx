@@ -6,7 +6,7 @@ import type { Schema } from "../amplify/data/resource";
 import { GraphQLError } from "graphql";
 const client = generateClient<Schema>();
 
-const TodoList = () => {
+const Chat = () => {
   const dateTimeNow = new Date();
   const [todos, setTodos] = useState<Schema["Todo"]["type"][]>([]);
   const [errors, setErrors] = useState<GraphQLError>();
@@ -95,4 +95,4 @@ const styles = StyleSheet.create({
   listItemSeparator: { backgroundColor: "lightgrey", height: 2 },
 });
 
-export default TodoList;
+export default Chat;
