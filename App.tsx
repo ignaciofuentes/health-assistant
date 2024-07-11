@@ -4,6 +4,7 @@ import { Amplify } from "aws-amplify";
 import { Authenticator, useAuthenticator } from "@aws-amplify/ui-react-native";
 import outputs from "./amplify_outputs.json";
 import TodoList from './src/TodoList';
+import FileList from './src/FileList';
 import { createDrawerNavigator, DrawerItem } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import Chat from './src/Chat';
@@ -22,7 +23,8 @@ const App = () => {
         <NavigationContainer>
           <Drawer.Navigator initialRouteName="Chat" drawerContent={(props) => <CustomDrawerContent {...props} />}>
             <Drawer.Screen name="Chat" component={TodoList} />
-            <Drawer.Screen name="My Files" component={Chat} />
+            <Drawer.Screen name="Todssos" component={Chat} />
+            <Drawer.Screen name="My Files" component={FileList} />
             
 
           </Drawer.Navigator>

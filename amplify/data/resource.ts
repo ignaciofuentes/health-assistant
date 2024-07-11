@@ -14,6 +14,11 @@ const schema = a.schema({
       name: a.string()
     })
     .authorization((allow) => [allow.owner()]),
+    File: a.model({
+      url: a.string(),
+      isDone: a.boolean(),
+    })
+    .authorization((allow) => [allow.owner()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
