@@ -12,7 +12,6 @@ const FileList = () => {
   const dateTimeNow = new Date();
   const [files, setFiles] = useState<Schema["File"]["type"][]>([]);
   const [errors, setErrors] = useState<GraphQLError>();
-  const [file, setFile] = useState<DocumentPickerResult>();
 
   useEffect(() => {
     console.log("running use effect");
@@ -25,51 +24,74 @@ const FileList = () => {
     return () => sub.unsubscribe();
   }, []);
 
+  const createFile2 = async () => {
+    try {
+      const result = await getDocumentAsync({ multiple: false });
+      if (result.canceled) {
+        alert("no file selected.");
+      } else {
+        console.log("uploading");
+        if (result?.assets != null) {
+          var doc = result?.assets[0];
+          const fileData = await fetch(doc.uri);
+          const blob = await fileData.blob();
+          console.log("OK LETS UPLOAD!!!");
+          const uploadResponse = await uploadData({
+            path: "files/" + doc.name,
+            data: blob,
+          }).result;
+          console.log("Succeeded: ", uploadResponse);
+          console.log(uploadResponse.path);
+          await client.models.File.create({
+            path: "files/" + doc.name,
+            isDone: false,
+          });
+        } else {
+          alert("error???.");
+        }
+      }
+    } catch {
+      alert("ERROR");
+    }
+  };
+
   const createFile = async () => {
     try {
-      const doc = await getDocumentAsync({});
-      setFile(doc);
-      await upload();
-      await save();
-    } catch {
-      console.log("error");
-    }
-  };
-  const upload = async () => {
-    console.log("uploading");
-    if (file?.assets != null) {
-      var doc = file?.assets[0];
-      const response = await fetch(doc.uri);
-      const blob = await response.blob();
+      const result = await getDocumentAsync({ multiple: false });
 
-      try {
-        uploadData({
-          path: "files/" + doc.name,
+      if (result.canceled) {
+        alert("No file selected.");
+        return;
+      }
+
+      console.log("Uploading...");
+
+      if (result.assets) {
+        const doc = result.assets[0];
+        const fileData = await fetch(doc.uri);
+        const blob = await fileData.blob();
+
+        console.log("Preparing to upload...");
+
+        const uploadResponse = await uploadData({
+          path: `files/${doc.name}`,
           data: blob,
         });
-      } catch (error) {
-        console.log("error");
-      }
-    }
-  };
 
-  const save = async () => {
-    console.log("saving");
-
-    try {
-      await client.models.File.create({
-        url: `http://myfile.com/${dateTimeNow.getUTCMilliseconds()}`,
-        isDone: false,
-      });
-    } catch (error: unknown) {
-      alert("error");
-      if (error instanceof GraphQLError) {
-        setErrors(error);
+        await client.models.File.create({
+          path: `files/${doc.name}`,
+          isDone: false,
+        });
       } else {
-        throw error;
+        alert("Error: No assets found.");
       }
+    } catch (error) {
+      alert("An error occurred during file upload.");
+      console.error(error);
     }
   };
+
+  const save = async () => {};
 
   if (errors) {
     return <Text>{errors.message}</Text>;
@@ -104,7 +126,7 @@ const FileItem = (file: Schema["File"]["type"]) => (
         textDecorationColor: file.isDone ? "red" : "black",
       }}
     >
-      {file.url}
+      {file.path?.split("/").pop()}
     </Text>
     <Button
       onPress={async () => {
