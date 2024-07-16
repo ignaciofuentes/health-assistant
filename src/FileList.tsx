@@ -1,28 +1,21 @@
 import { useState, useEffect } from "react";
 import { View, Button, Text, StyleSheet, FlatList } from "react-native";
-import { uploadData } from 'aws-amplify/storage';
+import { uploadData } from "aws-amplify/storage";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../amplify/data/resource";
 import { GraphQLError } from "graphql";
-import DocumentPicker, {
-  DirectoryPickerResponse,
-  DocumentPickerResponse,
-  isCancel,
-  isInProgress,
-  types,
-} from 'react-native-document-picker'
+import { DocumentPickerResult, getDocumentAsync } from "expo-document-picker";
+
 const client = generateClient<Schema>();
 
 const FileList = () => {
   const dateTimeNow = new Date();
   const [files, setFiles] = useState<Schema["File"]["type"][]>([]);
   const [errors, setErrors] = useState<GraphQLError>();
-
-  const [result, setResult] = useState<
-  Array<DocumentPickerResponse> | DirectoryPickerResponse | undefined | null
->()
+  const [file, setFile] = useState<DocumentPickerResult>();
 
   useEffect(() => {
+    console.log("running use effect");
     const sub = client.models.File.observeQuery().subscribe({
       next: ({ items }) => {
         setFiles([...items]);
@@ -32,38 +25,41 @@ const FileList = () => {
     return () => sub.unsubscribe();
   }, []);
 
-
   const createFile = async () => {
-    const pickerResult = await DocumentPicker.pickSingle({
-      presentationStyle: 'fullScreen',
-      copyTo: 'cachesDirectory',
-    })
-    setResult([pickerResult])
-    await upload();
-    await save();
-  };
-
-  const upload = async () =>{
     try {
-      await uploadData({
-        path: result!.toString(),
-        data: "",
-    })
-    } catch (error: unknown) {
-      alert("error");
-      if (error instanceof GraphQLError) {
-        setErrors(error);
-      } else {
-        throw error;
+      const doc = await getDocumentAsync({});
+      setFile(doc);
+      await upload();
+      await save();
+    } catch {
+      console.log("error");
+    }
+  };
+  const upload = async () => {
+    console.log("uploading");
+    if (file?.assets != null) {
+      var doc = file?.assets[0];
+      const response = await fetch(doc.uri);
+      const blob = await response.blob();
+
+      try {
+        uploadData({
+          path: "files/" + doc.name,
+          data: blob,
+        });
+      } catch (error) {
+        console.log("error");
       }
     }
-  }
+  };
 
-  const save = async()=>{
+  const save = async () => {
+    console.log("saving");
+
     try {
       await client.models.File.create({
         url: `http://myfile.com/${dateTimeNow.getUTCMilliseconds()}`,
-        isDone:false
+        isDone: false,
       });
     } catch (error: unknown) {
       alert("error");
@@ -73,10 +69,7 @@ const FileList = () => {
         throw error;
       }
     }
-
-  }
-
-
+  };
 
   if (errors) {
     return <Text>{errors.message}</Text>;
@@ -91,10 +84,10 @@ const FileList = () => {
         data={files}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
-        ItemSeparatorComponent={() => (
-          <View style={styles.listItemSeparator} />
+        ItemSeparatorComponent={() => <View style={styles.listItemSeparator} />}
+        ListEmptyComponent={() => (
+          <Text>You have not uploaded any files yet</Text>
         )}
-        ListEmptyComponent={() => <Text>You have not uploaded any files yet</Text>}
         style={styles.listContainer}
       ></FlatList>
       <Button onPress={createFile} title="Upload File" />
@@ -134,7 +127,7 @@ const FileItem = (file: Schema["File"]["type"]) => (
 const styles = StyleSheet.create({
   fileItemContainer: { flexDirection: "row", alignItems: "center", padding: 8 },
   fileItemText: { flex: 1, textAlign: "center" },
-  listContainer: { flex: 1, alignSelf: "stretch", padding:8 },
+  listContainer: { flex: 1, alignSelf: "stretch", padding: 8 },
   listItemSeparator: { backgroundColor: "lightgrey", height: 2 },
 });
 
