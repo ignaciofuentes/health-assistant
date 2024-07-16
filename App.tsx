@@ -22,11 +22,8 @@ const App = () => {
         
         <NavigationContainer>
           <Drawer.Navigator initialRouteName="Chat" drawerContent={(props) => <CustomDrawerContent {...props} />}>
-            <Drawer.Screen name="Chat" component={TodoList} />
-            <Drawer.Screen name="Todssos" component={Chat} />
+            <Drawer.Screen name="Chat" component={Chat} />
             <Drawer.Screen name="My Files" component={FileList} />
-            
-
           </Drawer.Navigator>
         </NavigationContainer>
       </SafeAreaView>

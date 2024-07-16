@@ -1,15 +1,26 @@
 import { useState, useEffect } from "react";
 import { View, Button, Text, StyleSheet, FlatList } from "react-native";
-
+import { uploadData } from 'aws-amplify/storage';
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../amplify/data/resource";
 import { GraphQLError } from "graphql";
+import DocumentPicker, {
+  DirectoryPickerResponse,
+  DocumentPickerResponse,
+  isCancel,
+  isInProgress,
+  types,
+} from 'react-native-document-picker'
 const client = generateClient<Schema>();
 
 const FileList = () => {
   const dateTimeNow = new Date();
   const [files, setFiles] = useState<Schema["File"]["type"][]>([]);
   const [errors, setErrors] = useState<GraphQLError>();
+
+  const [result, setResult] = useState<
+  Array<DocumentPickerResponse> | DirectoryPickerResponse | undefined | null
+>()
 
   useEffect(() => {
     const sub = client.models.File.observeQuery().subscribe({
@@ -21,20 +32,51 @@ const FileList = () => {
     return () => sub.unsubscribe();
   }, []);
 
+
   const createFile = async () => {
+    const pickerResult = await DocumentPicker.pickSingle({
+      presentationStyle: 'fullScreen',
+      copyTo: 'cachesDirectory',
+    })
+    setResult([pickerResult])
+    await upload();
+    await save();
+  };
+
+  const upload = async () =>{
     try {
-      await client.models.File.create({
-        url: `http://myfile.com/${dateTimeNow.getUTCMilliseconds()}`,
-        isDone:false
-      });
+      await uploadData({
+        path: result!.toString(),
+        data: "",
+    })
     } catch (error: unknown) {
+      alert("error");
       if (error instanceof GraphQLError) {
         setErrors(error);
       } else {
         throw error;
       }
     }
-  };
+  }
+
+  const save = async()=>{
+    try {
+      await client.models.File.create({
+        url: `http://myfile.com/${dateTimeNow.getUTCMilliseconds()}`,
+        isDone:false
+      });
+    } catch (error: unknown) {
+      alert("error");
+      if (error instanceof GraphQLError) {
+        setErrors(error);
+      } else {
+        throw error;
+      }
+    }
+
+  }
+
+
 
   if (errors) {
     return <Text>{errors.message}</Text>;
