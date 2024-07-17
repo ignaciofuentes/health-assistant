@@ -1,10 +1,19 @@
 import { useState, useEffect } from "react";
-import { View, Button, Text, StyleSheet, FlatList } from "react-native";
+import {
+  View,
+  Button,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { uploadData } from "aws-amplify/storage";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../amplify/data/resource";
 import { GraphQLError } from "graphql";
 import { DocumentPickerResult, getDocumentAsync } from "expo-document-picker";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 const client = generateClient<Schema>();
 
@@ -24,60 +33,21 @@ const FileList = () => {
     return () => sub.unsubscribe();
   }, []);
 
-  const createFile2 = async () => {
-    try {
-      const result = await getDocumentAsync({ multiple: false });
-      if (result.canceled) {
-        alert("no file selected.");
-      } else {
-        console.log("uploading");
-        if (result?.assets != null) {
-          var doc = result?.assets[0];
-          const fileData = await fetch(doc.uri);
-          const blob = await fileData.blob();
-          console.log("OK LETS UPLOAD!!!");
-          const uploadResponse = await uploadData({
-            path: "files/" + doc.name,
-            data: blob,
-          }).result;
-          console.log("Succeeded: ", uploadResponse);
-          console.log(uploadResponse.path);
-          await client.models.File.create({
-            path: "files/" + doc.name,
-            isDone: false,
-          });
-        } else {
-          alert("error???.");
-        }
-      }
-    } catch {
-      alert("ERROR");
-    }
-  };
-
   const createFile = async () => {
     try {
       const result = await getDocumentAsync({ multiple: false });
-
       if (result.canceled) {
         alert("No file selected.");
         return;
       }
-
-      console.log("Uploading...");
-
       if (result.assets) {
         const doc = result.assets[0];
         const fileData = await fetch(doc.uri);
         const blob = await fileData.blob();
-
-        console.log("Preparing to upload...");
-
         const uploadResponse = await uploadData({
           path: `files/${doc.name}`,
           data: blob,
         });
-
         await client.models.File.create({
           path: `files/${doc.name}`,
           isDone: false,
@@ -91,20 +61,15 @@ const FileList = () => {
     }
   };
 
-  const save = async () => {};
-
   if (errors) {
     return <Text>{errors.message}</Text>;
   }
 
-  const renderItem = ({ item }: { item: Schema["File"]["type"] }) => (
-    <FileItem {...item} />
-  );
   return (
     <View style={{ flex: 1 }}>
       <FlatList
         data={files}
-        renderItem={renderItem}
+        renderItem={({ item }) => <FileItemComponent {...item} />}
         keyExtractor={(item) => item.id}
         ItemSeparatorComponent={() => <View style={styles.listItemSeparator} />}
         ListEmptyComponent={() => (
@@ -112,45 +77,90 @@ const FileList = () => {
         )}
         style={styles.listContainer}
       ></FlatList>
-      <Button onPress={createFile} title="Upload File" />
+      <Pressable style={styles.button} onPress={createFile}>
+        <Text style={styles.text}>Upload a File</Text>
+      </Pressable>
     </View>
   );
 };
 
-const FileItem = (file: Schema["File"]["type"]) => (
-  <View style={styles.fileItemContainer} key={file.id}>
-    <Text
-      style={{
-        ...styles.fileItemText,
-        textDecorationLine: file.isDone ? "line-through" : "none",
-        textDecorationColor: file.isDone ? "red" : "black",
-      }}
-    >
-      {file.path?.split("/").pop()}
-    </Text>
-    <Button
-      onPress={async () => {
-        await client.models.File.delete(file);
-      }}
-      title="Delete"
-    />
-    <Button
-      onPress={() => {
-        client.models.File.update({
-          id: file.id,
-          isDone: !file.isDone,
-        });
-      }}
-      title={file.isDone ? "Undo" : "Done"}
-    />
-  </View>
-);
-
 const styles = StyleSheet.create({
-  fileItemContainer: { flexDirection: "row", alignItems: "center", padding: 8 },
+  fileItemContainer: { flexDirection: "row", alignItems: "center" },
   fileItemText: { flex: 1, textAlign: "center" },
-  listContainer: { flex: 1, alignSelf: "stretch", padding: 8 },
+  listContainer: { flex: 1, alignSelf: "stretch", margin: 10 },
   listItemSeparator: { backgroundColor: "lightgrey", height: 2 },
+  button: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 10,
+    margin: 10,
+    borderRadius: 4,
+    backgroundColor: "#232f3e",
+  },
+  text: {
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: "bold",
+    letterSpacing: 0.25,
+    color: "white",
+  },
+});
+
+const FileItemComponent = (file: Schema["File"]["type"]) => {
+  return (
+    <View style={fileItemStyle.container}>
+      <View style={fileItemStyle.column1}>
+        <AntDesign name="pdffile1" size={40} color="red" />
+      </View>
+      <View style={fileItemStyle.column2}>
+        <Text style={fileItemStyle.textTop}>{file.path?.split("/").pop()}</Text>
+        <Text style={fileItemStyle.textBottom}>{file.createdAt}</Text>
+      </View>
+      <View style={fileItemStyle.column3}>
+        {!file.isDone && <ActivityIndicator size="small" color="#0000ff" />}
+
+        <AntDesign
+          name="delete"
+          size={24}
+          style={{ marginLeft: 10 }}
+          color="black"
+          onPress={async () => {
+            await client.models.File.delete(file);
+          }}
+        />
+      </View>
+    </View>
+  );
+};
+
+const fileItemStyle = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 20,
+  },
+  column1: {
+    flex: 1,
+
+    alignItems: "center",
+  },
+  column2: {
+    flex: 4,
+    alignItems: "flex-start",
+  },
+  column3: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  textTop: {
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  textBottom: {
+    fontSize: 14,
+    color: "gray",
+  },
 });
 
 export default FileList;
