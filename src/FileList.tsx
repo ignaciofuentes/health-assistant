@@ -35,7 +35,10 @@ const FileList = () => {
 
   const createFile = async () => {
     try {
-      const result = await getDocumentAsync({ multiple: false });
+      const result = await getDocumentAsync({
+        multiple: false,
+        type: "application/pdf",
+      });
       if (result.canceled) {
         alert("No file selected.");
         return;
@@ -66,16 +69,29 @@ const FileList = () => {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View
+      style={{
+        flex: 1,
+      }}
+    >
       <FlatList
+        style={styles.listContainer}
         data={files}
         renderItem={({ item }) => <FileItemComponent {...item} />}
         keyExtractor={(item) => item.id}
         ItemSeparatorComponent={() => <View style={styles.listItemSeparator} />}
         ListEmptyComponent={() => (
-          <Text>You have not uploaded any files yet</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              flex: 1,
+              justifyContent: "center",
+              marginTop: 300,
+            }}
+          >
+            <Text>You have not uploaded any files yet</Text>
+          </View>
         )}
-        style={styles.listContainer}
       ></FlatList>
       <Pressable style={styles.button} onPress={createFile}>
         <Text style={styles.text}>Upload a File</Text>
@@ -87,7 +103,7 @@ const FileList = () => {
 const styles = StyleSheet.create({
   fileItemContainer: { flexDirection: "row", alignItems: "center" },
   fileItemText: { flex: 1, textAlign: "center" },
-  listContainer: { flex: 1, alignSelf: "stretch", margin: 10 },
+  listContainer: { flex: 1, margin: 10 },
   listItemSeparator: { backgroundColor: "lightgrey", height: 2 },
   button: {
     alignItems: "center",
@@ -117,7 +133,28 @@ const FileItemComponent = (file: Schema["File"]["type"]) => {
         <Text style={fileItemStyle.textBottom}>{file.createdAt}</Text>
       </View>
       <View style={fileItemStyle.column3}>
-        {!file.isDone && <ActivityIndicator size="small" color="#0000ff" />}
+        {!file.isDone ? (
+          <Pressable
+            onPress={() => {
+              client.models.File.update({
+                id: file.id,
+                isDone: !file.isDone,
+              });
+            }}
+          >
+            <ActivityIndicator size="small" color="#0000ff" />
+          </Pressable>
+        ) : (
+          <AntDesign
+            name="checkcircle"
+            size={24}
+            style={{ marginLeft: 10 }}
+            color="green"
+            onPress={async () => {
+              await client.models.File.delete(file);
+            }}
+          />
+        )}
 
         <AntDesign
           name="delete"
@@ -141,17 +178,18 @@ const fileItemStyle = StyleSheet.create({
   },
   column1: {
     flex: 1,
-
     alignItems: "center",
   },
   column2: {
-    flex: 4,
+    flex: 3,
     alignItems: "flex-start",
   },
   column3: {
     flex: 1,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-end",
+    justifyContent: "flex-end",
+    marginRight: 10,
   },
   textTop: {
     fontSize: 16,

@@ -185,7 +185,13 @@ const SignOutButton = () => {
     ]);
   };
 
-  return <DrawerItem label="Signout" onPress={doConfirmBeforeSignout} />;
+  return (
+    <DrawerItem
+      style={{}}
+      label="Signout"
+      onPress={doConfirmBeforeSignout}
+    ></DrawerItem>
+  );
 };
 
 const styles = StyleSheet.create({
