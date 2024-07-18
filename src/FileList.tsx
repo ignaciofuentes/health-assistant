@@ -21,12 +21,13 @@ const FileList = () => {
   const dateTimeNow = new Date();
   const [files, setFiles] = useState<Schema["File"]["type"][]>([]);
   const [errors, setErrors] = useState<GraphQLError>();
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    console.log("running use effect");
     const sub = client.models.File.observeQuery().subscribe({
       next: ({ items }) => {
         setFiles([...items]);
+        setLoading(false);
       },
     });
 
@@ -74,25 +75,31 @@ const FileList = () => {
         flex: 1,
       }}
     >
-      <FlatList
-        style={styles.listContainer}
-        data={files}
-        renderItem={({ item }) => <FileItemComponent {...item} />}
-        keyExtractor={(item) => item.id}
-        ItemSeparatorComponent={() => <View style={styles.listItemSeparator} />}
-        ListEmptyComponent={() => (
-          <View
-            style={{
-              flexDirection: "row",
-              flex: 1,
-              justifyContent: "center",
-              marginTop: 300,
-            }}
-          >
-            <Text>You have not uploaded any files yet</Text>
-          </View>
-        )}
-      ></FlatList>
+      {loading ? (
+        <Text>Loading</Text>
+      ) : (
+        <FlatList
+          style={styles.listContainer}
+          data={files}
+          renderItem={({ item }) => <FileItemComponent {...item} />}
+          keyExtractor={(item) => item.id}
+          ItemSeparatorComponent={() => (
+            <View style={styles.listItemSeparator} />
+          )}
+          ListEmptyComponent={() => (
+            <View
+              style={{
+                flexDirection: "row",
+                flex: 1,
+                justifyContent: "center",
+                marginTop: 300,
+              }}
+            >
+              <Text>You have not uploaded any files yet</Text>
+            </View>
+          )}
+        ></FlatList>
+      )}
       <Pressable style={styles.button} onPress={createFile}>
         <Text style={styles.text}>Upload a File</Text>
       </Pressable>
