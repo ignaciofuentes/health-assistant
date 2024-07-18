@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   Image,
   Alert,
+  Pressable,
 } from "react-native";
 import { Amplify } from "aws-amplify";
 import {
@@ -26,6 +27,7 @@ import {
 } from "@react-navigation/drawer";
 
 import Chat from "./src/Chat";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 const Drawer = createDrawerNavigator();
 Amplify.configure(outputs);
@@ -163,11 +165,38 @@ const App = () => {
 };
 
 function CustomDrawerContent(props: any) {
+  console.log(props);
   return (
-    <DrawerContentScrollView {...props} style={styles.drawerContent}>
-      <DrawerItemList {...props} />
+    <View
+      style={{
+        flex: 1,
+        flexDirection: "column",
+        justifyContent: "space-between",
+      }}
+    >
+      <View
+        style={{
+          justifyContent: "space-between",
+          flexDirection: "row",
+          marginHorizontal: 20,
+          marginBottom: 20,
+        }}
+      >
+        <AntDesign
+          name="menuunfold"
+          size={24}
+          color="white"
+          onPress={() => {
+            props.navigation.toggleDrawer();
+          }}
+        />
+        <AntDesign name="edit" size={24} color="white" />
+      </View>
+      <DrawerContentScrollView {...props} style={styles.drawerContent}>
+        <DrawerItemList {...props} />
+      </DrawerContentScrollView>
       <SignOutButton />
-    </DrawerContentScrollView>
+    </View>
   );
 }
 
@@ -186,11 +215,18 @@ const SignOutButton = () => {
   };
 
   return (
-    <DrawerItem
-      style={{}}
-      label="Signout"
+    <Pressable
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        margin: 20,
+        justifyContent: "flex-start",
+      }}
       onPress={doConfirmBeforeSignout}
-    ></DrawerItem>
+    >
+      <AntDesign style={{}} name="logout" size={24} color="white" />
+      <Text style={{ marginLeft: 10, color: "white" }}>Signout</Text>
+    </Pressable>
   );
 };
 
