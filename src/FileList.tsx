@@ -14,10 +14,13 @@ import type { Schema } from "../amplify/data/resource";
 import { GraphQLError } from "graphql";
 import { DocumentPickerResult, getDocumentAsync } from "expo-document-picker";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { useAuthenticator } from "@aws-amplify/ui-react-native";
 
 const client = generateClient<Schema>();
 
 const FileList = () => {
+  const { user } = useAuthenticator((context) => [context.user]);
+
   const dateTimeNow = new Date();
   const [files, setFiles] = useState<Schema["File"]["type"][]>([]);
   const [errors, setErrors] = useState<GraphQLError>();
@@ -49,7 +52,7 @@ const FileList = () => {
         const fileData = await fetch(doc.uri);
         const blob = await fileData.blob();
         const uploadResponse = await uploadData({
-          path: `files/${doc.name}`,
+          path: `files/${user.signInDetails?.loginId}/${doc.name}`,
           data: blob,
         });
         await client.models.File.create({
