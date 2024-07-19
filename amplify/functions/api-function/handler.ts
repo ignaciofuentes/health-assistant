@@ -1,7 +1,7 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 
-export const handler: APIGatewayProxyHandlerV2 = async (event:any) => {
-  console.log("event", event);
+export const handler: APIGatewayProxyHandlerV2 = async (event: any) => {
+  //console.log("event", event);
   return {
     statusCode: 200,
     // Modify the CORS settings below to match your specific requirements

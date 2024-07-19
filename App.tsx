@@ -165,7 +165,6 @@ const App = () => {
 };
 
 function CustomDrawerContent(props: any) {
-  console.log(props);
   return (
     <View
       style={{
@@ -207,7 +206,7 @@ const SignOutButton = () => {
     Alert.alert("Sign out?", "", [
       {
         text: "Cancel",
-        onPress: () => console.log("Cancel Pressed"),
+        onPress: () => {},
         style: "cancel",
       },
       { text: "Sign Out", onPress: () => signOut() },
