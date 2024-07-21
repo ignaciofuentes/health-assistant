@@ -1,4 +1,6 @@
 import "react-native-gesture-handler";
+import { useState, useEffect } from "react";
+
 import {
   StyleSheet,
   Text,
@@ -7,6 +9,7 @@ import {
   Image,
   Alert,
   Pressable,
+  Button,
 } from "react-native";
 import { Amplify } from "aws-amplify";
 import {
@@ -20,6 +23,7 @@ import FileList from "./src/FileList";
 import { createDrawerNavigator, DrawerItem } from "@react-navigation/drawer";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { ThemeProvider } from "@aws-amplify/ui-react-native";
+import { GraphQLError } from "graphql";
 
 import {
   DrawerContentScrollView,
@@ -28,9 +32,13 @@ import {
 
 import Chat from "./src/Chat";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import { generateClient } from "aws-amplify/api";
+import { Schema } from "./amplify/data/resource";
+import ChatContinue from "./src/ChatContinue";
 
 const Drawer = createDrawerNavigator();
 Amplify.configure(outputs);
+console.log(Amplify.getConfig());
 const MyTheme = {
   ...DefaultTheme,
   colors: {
@@ -40,6 +48,7 @@ const MyTheme = {
     card: "#232f3e",
   },
 };
+const client = generateClient<Schema>();
 
 const MyAppHeader = () => {
   const {
@@ -150,11 +159,11 @@ const App = () => {
           >
             <NavigationContainer theme={MyTheme}>
               <Drawer.Navigator
-                initialRouteName="Chat"
+                initialRouteName="Health Assistant"
                 drawerContent={(props) => <CustomDrawerContent {...props} />}
               >
-                <Drawer.Screen name="Chat" component={Chat} />
-                <Drawer.Screen name="My Files" component={FileList} />
+                <Drawer.Screen name="Health Assistant" component={Chat} />
+                <Drawer.Screen name="ChatContinue" component={ChatContinue} />
               </Drawer.Navigator>
             </NavigationContainer>
           </Authenticator>
@@ -165,6 +174,56 @@ const App = () => {
 };
 
 function CustomDrawerContent(props: any) {
+  const dateTimeNow = new Date();
+  const [files, setFiles] = useState<Schema["File"]["type"][]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  const [errors, setErrors] = useState<GraphQLError>();
+  const [loading, setLoading] = useState<boolean>(true);
+  useEffect(() => {
+    // const sub = client.models.Conversation.list().subscribe({
+    //   next: ({ items }) => {
+    //     setConversations([...items]);
+    //   },
+    // });
+    //return () => sub.unsubscribe();client.models.Conversation.list()
+
+    client.models.Conversation.list({
+      selectionSet: ["id", "title", "messages.*"],
+    }).then((res) => {
+      //console.log(res);
+      //console.log(res.data);
+      const convs = res.data.map((c) => ({
+        id: c.id!,
+        title: c.title!,
+        messages: c.messages,
+      }));
+      //console.log("convs are");
+      //console.log(convs);
+      setConversations([...convs]);
+    });
+
+    fetch(
+      "https://9bl1cfubzg.execute-api.us-east-1.amazonaws.com/prod/channels",
+      {}
+    )
+      .then((response) => {
+        console.log(response);
+        return response.json();
+      })
+      .then((data) => {
+        console.log(data.message);
+        const convs = data.map((c) => ({
+          id: c.id!,
+          title: c.title!,
+          messages: c.messages,
+        }));
+        setConversations([...convs]);
+      })
+      .catch((e) => {
+        //alert(e);
+      });
+  }, []);
   return (
     <View
       style={{
@@ -189,11 +248,48 @@ function CustomDrawerContent(props: any) {
             props.navigation.toggleDrawer();
           }}
         />
-        <AntDesign name="edit" size={24} color="white" />
+        <AntDesign
+          name="edit"
+          size={24}
+          color="white"
+          onPress={() => {
+            //props.navigation.navigate("");
+            //alert("dsdfsf");
+            //props.navigation.toggleDrawer();
+          }}
+        />
       </View>
       <DrawerContentScrollView {...props} style={styles.drawerContent}>
-        <DrawerItemList {...props} />
+        <Drawer.Screen name="Health Assistant" component={Chat} />
+        <DrawerItem
+          key="health"
+          label="Health Assistant"
+          onPress={() => {
+            props.navigation.navigate("Health Assistant");
+            //props.navigation.toggleDrawer();
+          }}
+        />
+        <View style={{ marginTop: 30 }}>
+          <Text style={{ color: "white", marginLeft: 16 }}>Conversations</Text>
+          {conversations.map((c, i) => {
+            return (
+              <DrawerItem
+                key={i}
+                label={c.title!}
+                onPress={() => {
+                  //console.log("passing conversation");
+                  //console.log(c);
+                  props.navigation.navigate("ChatContinue", {
+                    conversation: c,
+                  });
+                }}
+              />
+            );
+          })}
+        </View>
       </DrawerContentScrollView>
+      <DrawerItem label="My Files" onPress={() => {}} />
+
       <SignOutButton />
     </View>
   );

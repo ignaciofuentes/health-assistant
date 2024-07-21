@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { View, Button, Text, StyleSheet, FlatList } from "react-native";
 import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../amplify/data/resource";
@@ -6,111 +6,85 @@ import { GraphQLError } from "graphql";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useAuthenticator } from "@aws-amplify/ui-react-native";
 import { TextInput } from "react-native-gesture-handler";
+import { useFocusEffect } from "@react-navigation/native";
 
 interface Message {
   id: string;
   content: string;
-  from: "me" | "bot";
+  from: string;
 }
 
 const client = generateClient<Schema>();
 
-const Chat = ({ navigation }) => {
-  const { user } = useAuthenticator((context) => [context.user]);
-  const flatListRef = useRef(null);
-
-  // useEffect(() => {
-  //   //console.log("convd id", conversationId);
-  //   navigation.setOptions({
-  //     headerRight: () => (
-  //       <AntDesign
-  //         name="plus"
-  //         size={26}
-  //         color="white"
-  //         onPress={() => {
-  //           setConversationId("");
-  //           setMessages([]);
-  //           sub.unsubscribe();
-  //           sub = client.models.Message.observeQuery({
-  //             filter: {
-  //               conversationId: {
-  //                 eq: conversationId,
-  //               },
-  //             },
-  //           }).subscribe({
-  //             next: ({ items }) => {
-  //               setLoading(false);
-  //               setMessages([...items]);
-  //             },
-  //           });
-  //         }}
-  //         style={{ marginRight: 10 }}
-  //       />
-  //     ),
-  //   });
-  //   var sub = client.models.Message.observeQuery({
-  //     filter: {
-  //       conversationId: {
-  //         eq: conversationId,
-  //       },
-  //     },
-  //   }).subscribe({
-  //     next: ({ items }) => {
-  //       setLoading(false);
-  //       //setMessages([...items]);
-  //     },
-  //   });
-  //   return () => sub.unsubscribe();
-  // }, [navigation]);
-
-  const dateTimeNow = new Date();
-  var myMessages: Message[] = Array.from({ length: 10 }, (_, i) => ({
-    id: i.toString(),
-    content:
-      i % 2 === 0
-        ? "Hello World" + i
-        : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-    from: i % 2 === 0 ? "me" : "bot",
-  }));
-  const [messages, setMessages] = useState<Schema["Message"]["type"][]>([]);
-
+const ChatContinue = (props) => {
+  const { conversation } = props.route.params;
+  const [messages, setMessages] = useState<Message[]>();
   const [errors, setErrors] = useState<GraphQLError>();
   const [loading, setLoading] = useState<boolean>(false);
   const [typedMessage, setTypedMessage] = useState<string>("");
-  const [conversationId, setConversationId] = useState<string>("");
+
+  useEffect(() => {
+    //console.log("test");
+  });
+  // const [conversationId, setConversationId] = useState<string>("");
+  // useEffect(() => {
+  //   console.log("useEffect");
+  //   if (!conversation?.id) return; // Ensure conversation.id exists
+
+  //   console.log(conversation.id);
+  //   const fetchMessages = async () => {
+  //     try {
+  //       const response = await client.models.Message.list({
+  //         filter: { conversationId: { eq: conversation.id } },
+  //       });
+
+  //       setMessages(
+  //         response.data.map((i) => ({
+  //           id: i.id ?? "", // Use nullish coalescing for default value
+  //           content: i.content ?? "",
+  //           from: i.from ?? "",
+  //         }))
+  //       );
+  //     } catch (error) {
+  //       console.error("Failed to fetch messages:", error);
+  //     }
+  //   };
+
+  //   //fetchMessages();
+  // }, [conversation]); // Add conversation.id as a dependency
+
+  // console.log(props.msgs);
+
+  // const { user } = useAuthenticator((context) => [context.user]);
+  const flatListRef = useRef(null);
+
+  const dateTimeNow = new Date();
+  // var myMessages: Message[] = Array.from({ length: 10 }, (_, i) => ({
+  //   id: i.toString(),
+  //   content:
+  //     i % 2 === 0
+  //       ? "Hello World" + i
+  //       : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+  //   from: i % 2 === 0 ? "me" : "bot",
+  // }));
 
   async function sendMessage() {
     {
-      var response = await client.models.Conversation.create({
-        title: typedMessage.substring(0, 20),
-      });
-      var response2 = await client.models.Message.create({
+      // setMessages((prevMessages) => [
+      //   ...prevMessages,
+      //   { id: "asdasdasdasd", content: typedMessage, from: "me" },
+      // ]);
+      const response = await client.models.Message.create({
         content: typedMessage,
-        conversationId: response.data?.id,
+        from: "me",
+        conversationId: conversation.id,
+      });
+      conversation.messages.push({
+        id: response.data!.id,
+        content: typedMessage,
         from: "me",
       });
-      const conv = {
-        id: response.data!.id,
-        title: response.data!.title,
-        messages: [
-          {
-            id: response2.data?.id,
-            content: response2.data?.content,
-            from: "me",
-          },
-        ],
-      };
-      navigation.navigate("ChatContinue", {
-        conversation: conv,
-      });
-      //console.log("Message saved");
-      //console.log(response2.data?.id);
-
       setTypedMessage("");
-      // setTimeout(
-      //   () => flatListRef.current.scrollToEnd({ animated: true }),
-      //   100
-      // );
     }
   }
 
@@ -125,14 +99,13 @@ const Chat = ({ navigation }) => {
         backgroundColor: "white",
       }}
     >
-      <Text>{conversationId}</Text>
       {loading ? (
         <Text>Loading</Text>
       ) : (
         <FlatList
           ref={flatListRef}
           style={styles.listContainer}
-          data={messages}
+          data={conversation.messages}
           renderItem={({ item }) => <MessageItemComponent {...item} />}
           keyExtractor={(item) => item.id}
           ListEmptyComponent={() => (
@@ -144,7 +117,10 @@ const Chat = ({ navigation }) => {
                 marginTop: 300,
               }}
             >
-              <Text>How can I help?</Text>
+              <View>
+                <Text>{conversation.id}</Text>
+                <Text>{conversation.messages.length}</Text>
+              </View>
             </View>
           )}
         ></FlatList>
@@ -174,6 +150,7 @@ const Chat = ({ navigation }) => {
       </View>
     </View>
   );
+  return <Text>Test</Text>;
 };
 
 const styles = StyleSheet.create({
@@ -211,7 +188,7 @@ const MessageItemComponent = (message: Message) => {
         </Text>
       </View>
     );
-  } else {
+  } else if (message.from === "bot") {
     return (
       <View style={messageItemStyle.containerBot}>
         <AntDesign
@@ -241,4 +218,4 @@ const messageItemStyle = StyleSheet.create({
   },
 });
 
-export default Chat;
+export default ChatContinue;
