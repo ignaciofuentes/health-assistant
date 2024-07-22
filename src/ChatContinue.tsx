@@ -7,12 +7,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { useAuthenticator } from "@aws-amplify/ui-react-native";
 import { TextInput } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
-
-interface Message {
-  id: string;
-  content: string;
-  from: string;
-}
+import { askQuestion } from "../data.service";
 
 const client = generateClient<Schema>();
 
@@ -24,49 +19,12 @@ const ChatContinue = (props) => {
   const [typedMessage, setTypedMessage] = useState<string>("");
 
   useEffect(() => {
+    props.navigation.setOptions({ title: conversation.title });
     //console.log("test");
   });
-  // const [conversationId, setConversationId] = useState<string>("");
-  // useEffect(() => {
-  //   console.log("useEffect");
-  //   if (!conversation?.id) return; // Ensure conversation.id exists
-
-  //   console.log(conversation.id);
-  //   const fetchMessages = async () => {
-  //     try {
-  //       const response = await client.models.Message.list({
-  //         filter: { conversationId: { eq: conversation.id } },
-  //       });
-
-  //       setMessages(
-  //         response.data.map((i) => ({
-  //           id: i.id ?? "", // Use nullish coalescing for default value
-  //           content: i.content ?? "",
-  //           from: i.from ?? "",
-  //         }))
-  //       );
-  //     } catch (error) {
-  //       console.error("Failed to fetch messages:", error);
-  //     }
-  //   };
-
-  //   //fetchMessages();
-  // }, [conversation]); // Add conversation.id as a dependency
-
-  // console.log(props.msgs);
-
-  // const { user } = useAuthenticator((context) => [context.user]);
   const flatListRef = useRef(null);
 
   const dateTimeNow = new Date();
-  // var myMessages: Message[] = Array.from({ length: 10 }, (_, i) => ({
-  //   id: i.toString(),
-  //   content:
-  //     i % 2 === 0
-  //       ? "Hello World" + i
-  //       : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-  //   from: i % 2 === 0 ? "me" : "bot",
-  // }));
 
   async function sendMessage() {
     {
@@ -74,13 +32,20 @@ const ChatContinue = (props) => {
       //   ...prevMessages,
       //   { id: "asdasdasdasd", content: typedMessage, from: "me" },
       // ]);
-      const response = await client.models.Message.create({
-        content: typedMessage,
-        from: "me",
+      // const response = await client.models.Message.create({
+      //   content: typedMessage,
+      //   from: "me",
+      //   conversationId: conversation.id,
+      // });
+
+      const response = await askQuestion({
         conversationId: conversation.id,
+        content: typedMessage,
       });
+
       conversation.messages.push({
-        id: response.data!.id,
+        //id: response.data!.id || "sdfsdfsd",
+        id: "sdfsdfsdfsdfsdf",
         content: typedMessage,
         from: "me",
       });

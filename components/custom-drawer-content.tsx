@@ -4,47 +4,32 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { createDrawerNavigator, DrawerItem } from "@react-navigation/drawer";
-import { GraphQLError } from "graphql";
 
 import { DrawerContentScrollView } from "@react-navigation/drawer";
 
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { generateClient } from "aws-amplify/api";
-import { Schema } from "../amplify/data/resource";
 import Chat from "../src/Chat";
 import SignOutButton from "./sign-out-button";
-
-//const client = generateClient<Schema>();
-//const Drawer = createDrawerNavigator();
-import { getCurrentUser } from "aws-amplify/auth";
-import { fetchData } from "./apiService";
 import { getConversations } from "../data.service";
-import { useAuthenticator } from "@aws-amplify/ui-react-native";
-import { fetchAuthSession } from "aws-amplify/auth";
 
-function CustomDrawerContent({ navigation, drawer }) {
-  const { user } = useAuthenticator((context) => [context.user]);
-  const dateTimeNow = new Date();
-  const [files, setFiles] = useState<Schema["File"]["type"][]>([]);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+function CustomDrawerContent({ navigation, drawer, conversations }) {
+  //const [conversations, setConversations] = useState<Conversation[]>([]);
 
-  const [errors, setErrors] = useState<GraphQLError>();
-  const [loading, setLoading] = useState<boolean>(true);
-  useEffect(() => {
-    getConversations().then((conversations: any) => {
-      console.log("BACK FROM FETCH");
-      //console.log(res.data);
-      console.log(conversations);
-      const convs = conversations.map((c) => ({
-        id: c.id!,
-        title: c.title!,
-        messages: c.messages,
-      }));
-      //console.log("convs are");
-      //console.log(convs);
-      setConversations([...convs]);
-    });
-  }, []);
+  // useEffect(() => {
+  //   getConversations().then((conversations: any) => {
+  //     //console.log("BACK FROM FETCH");
+  //     //console.log(res.data);
+  //     //console.log(conversations);
+  //     const convs = conversations.map((c) => ({
+  //       id: c.id!,
+  //       title: c.title!,
+  //       messages: c.messages,
+  //     }));
+  //     //console.log("convs are");
+  //     //console.log(convs);
+  //     //setConversations([...convs]);
+  //   });
+  // }, []);
   return (
     <View
       style={{
@@ -87,24 +72,26 @@ function CustomDrawerContent({ navigation, drawer }) {
           label="Health Assistant"
           onPress={() => {
             navigation.navigate("Health Assistant");
-            //props.navigation.toggleDrawer();
           }}
         />
         <View style={{ marginTop: 30 }}>
           <Text style={{ color: "white", marginLeft: 16 }}>Conversations</Text>
           {conversations.map((c, i) => {
             return (
-              <DrawerItem
-                key={i}
-                label={c.title || "eee"}
-                onPress={() => {
-                  //console.log("passing conversation");
-                  //console.log(c);
-                  navigation.navigate("ChatContinue", {
-                    conversation: c,
-                  });
-                }}
-              />
+              <View key={i}>
+                <Text
+                  onPress={() => {
+                    //console.log("passing conversation");
+                    //console.log(c);
+                    navigation.navigate("ChatContinue", {
+                      conversation: c,
+                    });
+                  }}
+                  style={{ color: "white", margin: 20, fontSize: 18 }}
+                >
+                  {c.title}
+                </Text>
+              </View>
             );
           })}
         </View>

@@ -1,12 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { View, Button, Text, StyleSheet, FlatList } from "react-native";
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "../amplify/data/resource";
 import { GraphQLError } from "graphql";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useAuthenticator } from "@aws-amplify/ui-react-native";
 import { TextInput } from "react-native-gesture-handler";
-import { createConversation } from "../data.service";
+import { askQuestion, createConversation } from "../data.service";
+import { useAppContext } from "./../AppContext";
 
 interface Message {
   id: string;
@@ -17,8 +15,8 @@ interface Message {
 //const client = generateClient<Schema>();
 
 const Chat = ({ navigation }) => {
-  const { user } = useAuthenticator((context) => [context.user]);
   const flatListRef = useRef(null);
+  const { handleFunction } = useAppContext();
 
   // useEffect(() => {
   //   //console.log("convd id", conversationId);
@@ -73,7 +71,7 @@ const Chat = ({ navigation }) => {
         : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
     from: i % 2 === 0 ? "me" : "bot",
   }));
-  const [messages, setMessages] = useState<Schema["Message"]["type"][]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   const [errors, setErrors] = useState<GraphQLError>();
   const [loading, setLoading] = useState<boolean>(false);
@@ -85,15 +83,17 @@ const Chat = ({ navigation }) => {
       var response = await createConversation({
         title: typedMessage.substring(0, 20),
       });
-      // var response2 = await client.models.Message.create({
-      //   content: typedMessage,
-      //   conversationId: response.data?.id,
-      //   from: "me",
-      // });
+
+      var response2 = await askQuestion({
+        conversationId: response.data.id,
+        content: typedMessage.substring(0, 20),
+      });
+
       const conv = {
         id: response.data!.id,
         title: response.data!.title,
         messages: [
+          { id: "hkhkjhkjhjkhjk", content: typedMessage, from: "me" },
           // {
           //   id: response2.data?.id,
           //   content: response2.data?.content,
@@ -108,6 +108,8 @@ const Chat = ({ navigation }) => {
       //console.log(response2.data?.id);
 
       setTypedMessage("");
+      await handleFunction();
+      //await reloadConversationList();
       // setTimeout(
       //   () => flatListRef.current.scrollToEnd({ animated: true }),
       //   100
@@ -126,30 +128,17 @@ const Chat = ({ navigation }) => {
         backgroundColor: "white",
       }}
     >
-      <Text>{conversationId}</Text>
-      {loading ? (
-        <Text>Loading</Text>
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          style={styles.listContainer}
-          data={messages}
-          renderItem={({ item }) => <MessageItemComponent {...item} />}
-          keyExtractor={(item) => item.id}
-          ListEmptyComponent={() => (
-            <View
-              style={{
-                flexDirection: "row",
-                flex: 1,
-                justifyContent: "center",
-                marginTop: 300,
-              }}
-            >
-              <Text>How can I help?</Text>
-            </View>
-          )}
-        ></FlatList>
-      )}
+      <View
+        style={{
+          flexDirection: "row",
+          flex: 1,
+          justifyContent: "center",
+          marginTop: 300,
+        }}
+      >
+        <Text>How can I help?</Text>
+      </View>
+
       <View
         style={{
           flexDirection: "row",

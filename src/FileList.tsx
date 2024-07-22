@@ -9,14 +9,16 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { uploadData } from "aws-amplify/storage";
-import { generateClient } from "aws-amplify/data";
 import type { Schema } from "../amplify/data/resource";
 import { GraphQLError } from "graphql";
 import { DocumentPickerResult, getDocumentAsync } from "expo-document-picker";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useAuthenticator } from "@aws-amplify/ui-react-native";
-
-const client = generateClient<Schema>();
+import {
+  createFileRecord,
+  deleteFileRecord,
+  getFilesSubscription,
+} from "../data.service";
 
 const FileList = () => {
   const { user } = useAuthenticator((context) => [context.user]);
@@ -27,7 +29,7 @@ const FileList = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const sub = client.models.File.observeQuery().subscribe({
+    const sub = getFilesSubscription({
       next: ({ items }) => {
         setFiles([...items]);
         setLoading(false);
@@ -54,7 +56,7 @@ const FileList = () => {
           path: `files/${user.signInDetails?.loginId}/${doc.name}`,
           data: blob,
         });
-        await client.models.File.create({
+        await createFileRecord({
           path: `files/${doc.name}`,
           isDone: false,
         });
@@ -171,7 +173,7 @@ const FileItemComponent = (file: Schema["File"]["type"]) => {
           style={{ marginLeft: 10 }}
           color="black"
           onPress={async () => {
-            await client.models.File.delete(file);
+            await deleteFileRecord(file);
           }}
         />
       </View>

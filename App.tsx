@@ -1,5 +1,5 @@
 import "react-native-gesture-handler";
-import { useState, useEffect } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 
 import {
   StyleSheet,
@@ -36,19 +36,20 @@ import { generateClient } from "aws-amplify/api";
 import { Schema } from "./amplify/data/resource";
 import ChatContinue from "./src/ChatContinue";
 import CustomDrawerContent from "./components/custom-drawer-content";
+import { getConversations } from "./data.service";
+import { AppProvider } from "./AppContext";
 
-const Drawer: DrawerNavigator = createDrawerNavigator();
 Amplify.configure(outputs);
+const Drawer = createDrawerNavigator();
+
 const MyTheme = {
   ...DefaultTheme,
   colors: {
     ...DefaultTheme.colors,
-
     text: "white",
     card: "#232f3e",
   },
 };
-const client = generateClient<Schema>();
 
 const MyAppHeader = () => {
   const {
@@ -76,10 +77,67 @@ const AuthenticatorContainer = (props: any) => {
   );
 };
 
+const LoggedInAppExperience = () => {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  const handleFunction = async () => {
+    let newConversations = await getConversations();
+    //console.log("BACK FROM FETCH");
+    //console.log(res.data);
+    //console.log(conversations);
+    const convs = newConversations.map((c) => ({
+      id: c.id!,
+      title: c.title!,
+      messages: c.messages,
+    }));
+    //console.log("convs are");
+    console.log(convs);
+    console.log("REFRESHING CONVERSATIONS!");
+    setConversations([...convs]);
+  };
+
+  useEffect(() => {
+    getConversations().then((conversations: any) => {
+      //console.log("BACK FROM FETCH");
+      //console.log(res.data);
+      //console.log(conversations);
+      const convs = conversations.map((c) => ({
+        id: c.id!,
+        title: c.title!,
+        messages: c.messages,
+      }));
+      //console.log("convs are");
+      //console.log(convs);
+      setConversations([...convs]);
+    });
+  }, []);
+  return (
+    <AppProvider value={{ handleFunction }}>
+      <NavigationContainer theme={MyTheme}>
+        <Drawer.Navigator
+          initialRouteName="Health Assistant"
+          drawerContent={(props) => (
+            <CustomDrawerContent
+              conversations={conversations}
+              navigation={props.navigation}
+              drawer={Drawer}
+            />
+          )}
+        >
+          <Drawer.Screen name="Health Assistant" component={Chat} />
+          <Drawer.Screen name="ChatContinue" component={ChatContinue} />
+          <Drawer.Screen name="My Files" component={FileList} />
+        </Drawer.Navigator>
+      </NavigationContainer>
+    </AppProvider>
+  );
+};
+
 const App = () => {
   const {
     tokens: { space, fontSizes, colors, radii },
   } = useTheme();
+
   const theme: Theme = {
     components: {
       label: {
@@ -157,21 +215,7 @@ const App = () => {
             Container={AuthenticatorContainer}
             Header={MyAppHeader}
           >
-            <NavigationContainer theme={MyTheme}>
-              <Drawer.Navigator
-                initialRouteName="Health Assistant"
-                drawerContent={(props) => (
-                  <CustomDrawerContent
-                    navigation={props.navigation}
-                    drawer={Drawer}
-                  />
-                )}
-              >
-                <Drawer.Screen name="Health Assistant" component={Chat} />
-                <Drawer.Screen name="ChatContinue" component={ChatContinue} />
-                <Drawer.Screen name="My Files" component={FileList} />
-              </Drawer.Navigator>
-            </NavigationContainer>
+            <LoggedInAppExperience></LoggedInAppExperience>
           </Authenticator>
         </Authenticator.Provider>
       </ThemeProvider>
