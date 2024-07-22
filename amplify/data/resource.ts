@@ -13,20 +13,20 @@ const schema = a.schema({
       isDone: a.boolean(),
     })
     .authorization((allow) => [allow.owner()]),
-  Message: a
-    .model({
-      content: a.string(),
-      conversationId: a.id(),
-      conversation: a.belongsTo("Conversation", "conversationId"),
-      from: a.string(),
-    })
-    .authorization((allow) => [allow.owner()]),
-  Conversation: a
-    .model({
-      title: a.string(),
-      messages: a.hasMany("Message", "conversationId"), // setup relationships between types
-    })
-    .authorization((allow) => [allow.owner()]),
+  // Message: a
+  //   .model({
+  //     content: a.string(),
+  //     conversationId: a.id(),
+  //     conversation: a.belongsTo("Conversation", "conversationId"),
+  //     from: a.string(),
+  //   })
+  //   .authorization((allow) => [allow.owner()]),
+  // Conversation: a
+  //   .model({
+  //     title: a.string(),
+  //     messages: a.hasMany("Message", "conversationId"), // setup relationships between types
+  //   })
+  //   .authorization((allow) => [allow.owner()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

@@ -11,6 +11,10 @@ export const getConversations = async (): Promise<Conversation[]> => {
     { headers }
   );
 
+  if (!response.ok) {
+    alert("fetch error");
+    return;
+  }
   var data = await response.json();
 
   console.log(data.Items);
