@@ -7,7 +7,7 @@ import { storage } from "./storage/resource";
  * @see https://docs.amplify.aws/react/build-a-backend/ to add storage, functions, and more
  */
 const backend = defineBackend({
-  data,
+  //data,
   storage,
   auth,
 });
@@ -28,5 +28,12 @@ const backend = defineBackend({
 //       require_numbers: true,
 //       require_symbols: true,
 //     },
+//   },
+// });
+
+// backend.addOutput({
+//   storage: {
+//     aws_region: "us-east-1",
+//     bucket_name: "<bucket-name>",
 //   },
 // });

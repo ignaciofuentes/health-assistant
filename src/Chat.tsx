@@ -6,6 +6,7 @@ import { GraphQLError } from "graphql";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useAuthenticator } from "@aws-amplify/ui-react-native";
 import { TextInput } from "react-native-gesture-handler";
+import { createConversation } from "../data.service";
 
 interface Message {
   id: string;
@@ -13,7 +14,7 @@ interface Message {
   from: "me" | "bot";
 }
 
-const client = generateClient<Schema>();
+//const client = generateClient<Schema>();
 
 const Chat = ({ navigation }) => {
   const { user } = useAuthenticator((context) => [context.user]);
@@ -81,23 +82,23 @@ const Chat = ({ navigation }) => {
 
   async function sendMessage() {
     {
-      var response = await client.models.Conversation.create({
+      var response = await createConversation({
         title: typedMessage.substring(0, 20),
       });
-      var response2 = await client.models.Message.create({
-        content: typedMessage,
-        conversationId: response.data?.id,
-        from: "me",
-      });
+      // var response2 = await client.models.Message.create({
+      //   content: typedMessage,
+      //   conversationId: response.data?.id,
+      //   from: "me",
+      // });
       const conv = {
         id: response.data!.id,
         title: response.data!.title,
         messages: [
-          {
-            id: response2.data?.id,
-            content: response2.data?.content,
-            from: "me",
-          },
+          // {
+          //   id: response2.data?.id,
+          //   content: response2.data?.content,
+          //   from: "me",
+          // },
         ],
       };
       navigation.navigate("ChatContinue", {

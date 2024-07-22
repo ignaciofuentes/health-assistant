@@ -35,10 +35,10 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { generateClient } from "aws-amplify/api";
 import { Schema } from "./amplify/data/resource";
 import ChatContinue from "./src/ChatContinue";
+import CustomDrawerContent from "./components/custom-drawer-content";
 
-const Drawer = createDrawerNavigator();
+const Drawer: DrawerNavigator = createDrawerNavigator();
 Amplify.configure(outputs);
-console.log(Amplify.getConfig());
 const MyTheme = {
   ...DefaultTheme,
   colors: {
@@ -160,168 +160,22 @@ const App = () => {
             <NavigationContainer theme={MyTheme}>
               <Drawer.Navigator
                 initialRouteName="Health Assistant"
-                drawerContent={(props) => <CustomDrawerContent {...props} />}
+                drawerContent={(props) => (
+                  <CustomDrawerContent
+                    navigation={props.navigation}
+                    drawer={Drawer}
+                  />
+                )}
               >
                 <Drawer.Screen name="Health Assistant" component={Chat} />
                 <Drawer.Screen name="ChatContinue" component={ChatContinue} />
+                <Drawer.Screen name="My Files" component={FileList} />
               </Drawer.Navigator>
             </NavigationContainer>
           </Authenticator>
         </Authenticator.Provider>
       </ThemeProvider>
     </SafeAreaView>
-  );
-};
-
-function CustomDrawerContent(props: any) {
-  const dateTimeNow = new Date();
-  const [files, setFiles] = useState<Schema["File"]["type"][]>([]);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-
-  const [errors, setErrors] = useState<GraphQLError>();
-  const [loading, setLoading] = useState<boolean>(true);
-  useEffect(() => {
-    // const sub = client.models.Conversation.list().subscribe({
-    //   next: ({ items }) => {
-    //     setConversations([...items]);
-    //   },
-    // });
-    //return () => sub.unsubscribe();client.models.Conversation.list()
-
-    client.models.Conversation.list({
-      selectionSet: ["id", "title", "messages.*"],
-    }).then((res) => {
-      //console.log(res);
-      //console.log(res.data);
-      const convs = res.data.map((c) => ({
-        id: c.id!,
-        title: c.title!,
-        messages: c.messages,
-      }));
-      //console.log("convs are");
-      //console.log(convs);
-      setConversations([...convs]);
-    });
-
-    fetch(
-      "https://9bl1cfubzg.execute-api.us-east-1.amazonaws.com/prod/channels",
-      {}
-    )
-      .then((response) => {
-        console.log(response);
-        return response.json();
-      })
-      .then((data) => {
-        console.log(data.message);
-        const convs = data.map((c) => ({
-          id: c.id!,
-          title: c.title!,
-          messages: c.messages,
-        }));
-        setConversations([...convs]);
-      })
-      .catch((e) => {
-        //alert(e);
-      });
-  }, []);
-  return (
-    <View
-      style={{
-        flex: 1,
-        flexDirection: "column",
-        justifyContent: "space-between",
-      }}
-    >
-      <View
-        style={{
-          justifyContent: "space-between",
-          flexDirection: "row",
-          marginHorizontal: 20,
-          marginBottom: 20,
-        }}
-      >
-        <AntDesign
-          name="menuunfold"
-          size={24}
-          color="white"
-          onPress={() => {
-            props.navigation.toggleDrawer();
-          }}
-        />
-        <AntDesign
-          name="edit"
-          size={24}
-          color="white"
-          onPress={() => {
-            //props.navigation.navigate("");
-            //alert("dsdfsf");
-            //props.navigation.toggleDrawer();
-          }}
-        />
-      </View>
-      <DrawerContentScrollView {...props} style={styles.drawerContent}>
-        <Drawer.Screen name="Health Assistant" component={Chat} />
-        <DrawerItem
-          key="health"
-          label="Health Assistant"
-          onPress={() => {
-            props.navigation.navigate("Health Assistant");
-            //props.navigation.toggleDrawer();
-          }}
-        />
-        <View style={{ marginTop: 30 }}>
-          <Text style={{ color: "white", marginLeft: 16 }}>Conversations</Text>
-          {conversations.map((c, i) => {
-            return (
-              <DrawerItem
-                key={i}
-                label={c.title!}
-                onPress={() => {
-                  //console.log("passing conversation");
-                  //console.log(c);
-                  props.navigation.navigate("ChatContinue", {
-                    conversation: c,
-                  });
-                }}
-              />
-            );
-          })}
-        </View>
-      </DrawerContentScrollView>
-      <DrawerItem label="My Files" onPress={() => {}} />
-
-      <SignOutButton />
-    </View>
-  );
-}
-
-const SignOutButton = () => {
-  const { signOut } = useAuthenticator();
-
-  const doConfirmBeforeSignout = () => {
-    Alert.alert("Sign out?", "", [
-      {
-        text: "Cancel",
-        onPress: () => {},
-        style: "cancel",
-      },
-      { text: "Sign Out", onPress: () => signOut() },
-    ]);
-  };
-
-  return (
-    <Pressable
-      style={{
-        flexDirection: "row",
-        alignItems: "center",
-        margin: 20,
-        justifyContent: "flex-start",
-      }}
-      onPress={doConfirmBeforeSignout}
-    >
-      <AntDesign style={{}} name="logout" size={24} color="white" />
-      <Text style={{ marginLeft: 10, color: "white" }}>Signout</Text>
-    </Pressable>
   );
 };
 

@@ -16,7 +16,7 @@ import { DocumentPickerResult, getDocumentAsync } from "expo-document-picker";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useAuthenticator } from "@aws-amplify/ui-react-native";
 
-const client = generateClient<Schema>();
+//const client = generateClient<Schema>();
 
 const FileList = () => {
   const { user } = useAuthenticator((context) => [context.user]);
@@ -27,14 +27,13 @@ const FileList = () => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const sub = client.models.File.observeQuery().subscribe({
-      next: ({ items }) => {
-        setFiles([...items]);
-        setLoading(false);
-      },
-    });
-
-    return () => sub.unsubscribe();
+    // const sub = client.models.File.observeQuery().subscribe({
+    //   next: ({ items }) => {
+    //     setFiles([...items]);
+    //     setLoading(false);
+    //   },
+    // });
+    //return () => sub.unsubscribe();
   }, []);
 
   const createFile = async () => {
@@ -55,10 +54,10 @@ const FileList = () => {
           path: `files/${user.signInDetails?.loginId}/${doc.name}`,
           data: blob,
         });
-        await client.models.File.create({
-          path: `files/${doc.name}`,
-          isDone: false,
-        });
+        // await client.models.File.create({
+        //   path: `files/${doc.name}`,
+        //   isDone: false,
+        // });
       } else {
         alert("Error: No assets found.");
       }
@@ -146,10 +145,10 @@ const FileItemComponent = (file: Schema["File"]["type"]) => {
         {!file.isDone ? (
           <Pressable
             onPress={() => {
-              client.models.File.update({
-                id: file.id,
-                isDone: !file.isDone,
-              });
+              // client.models.File.update({
+              //   id: file.id,
+              //   isDone: !file.isDone,
+              // });
             }}
           >
             <ActivityIndicator size="small" color="#0000ff" />
@@ -161,7 +160,7 @@ const FileItemComponent = (file: Schema["File"]["type"]) => {
             style={{ marginLeft: 10 }}
             color="green"
             onPress={async () => {
-              await client.models.File.delete(file);
+              //await client.models.File.delete(file);
             }}
           />
         )}
