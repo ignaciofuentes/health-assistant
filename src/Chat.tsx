@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, Image } from "react-native";
 import { GraphQLError } from "graphql";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { TextInput } from "react-native-gesture-handler";
@@ -79,11 +79,17 @@ const Chat = ({ navigation }) => {
           flexDirection: "row",
           flex: 1,
           justifyContent: "center",
-          marginTop: 300,
+          marginTop: 200,
         }}
       >
         {message === null ? (
-          <Text>How can I help?</Text>
+          <View>
+            <Image
+              source={require("../healthlogo.png")}
+              style={{ width: 140, height: 140 }}
+            />
+            <Text style={{ fontSize: 20 }}>How can I help?</Text>
+          </View>
         ) : (
           <ActivityIndicator
             color="#ff9900"
