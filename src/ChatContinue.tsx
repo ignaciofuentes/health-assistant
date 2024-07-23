@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  ActivityIndicator,
+} from "react-native";
 import { GraphQLError } from "graphql";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { TextInput } from "react-native-gesture-handler";
@@ -24,6 +30,7 @@ const ChatContinue = (props) => {
 
   async function sendMessage() {
     {
+      setLoading(true);
       var question = typedMessage;
       conversation.messages.push({
         id: makeid(5),
@@ -47,6 +54,7 @@ const ChatContinue = (props) => {
         500
       );
       setTypedMessage("");
+      setLoading(false);
     }
   }
 
@@ -55,15 +63,24 @@ const ChatContinue = (props) => {
   }
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: "white",
-      }}
-    >
-      {loading ? (
-        <Text>Loading</Text>
-      ) : (
+    <View style={{ flex: 1 }}>
+      {loading && (
+        <ActivityIndicator
+          color="#ff9900"
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1,
+          }}
+        />
+      )}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: "white",
+        }}
+      >
         <FlatList
           ref={flatListRef}
           style={styles.listContainer}
@@ -86,37 +103,37 @@ const ChatContinue = (props) => {
             </View>
           )}
         ></FlatList>
-      )}
-      <View
-        style={{
-          flexDirection: "row",
-          borderWidth: 1,
-          alignItems: "center",
-          margin: 10,
-          borderRadius: 4,
-        }}
-      >
-        <TextInput
-          style={styles.textInputStyles}
-          placeholder="Message Health Assistant"
-          value={typedMessage}
-          onChangeText={setTypedMessage}
-          onSubmitEditing={sendMessage}
-        />
-        <AntDesign
-          name="upcircle"
-          size={26}
-          color="gray"
-          style={{ marginRight: 10 }}
-        />
+
+        <View
+          style={{
+            flexDirection: "row",
+            borderWidth: 1,
+            alignItems: "center",
+            margin: 10,
+            borderRadius: 4,
+          }}
+        >
+          <TextInput
+            style={styles.textInputStyles}
+            placeholder="Message Health Assistant"
+            value={typedMessage}
+            onChangeText={setTypedMessage}
+            onSubmitEditing={sendMessage}
+          />
+          <AntDesign
+            name="upcircle"
+            size={26}
+            color="gray"
+            style={{ marginRight: 10 }}
+          />
+        </View>
       </View>
     </View>
   );
-  return <Text>Test</Text>;
 };
 
 const styles = StyleSheet.create({
-  listContainer: { flex: 1, margin: 10, backgroundColor: "white" },
+  listContainer: { flex: 1, margin: 10 },
   textInputStyles: {
     flex: 1,
     padding: 10,
