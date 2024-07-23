@@ -1,39 +1,16 @@
 import "react-native-gesture-handler";
 import { useState, useEffect, createContext, useContext } from "react";
 
-import {
-  StyleSheet,
-  Text,
-  View,
-  SafeAreaView,
-  Image,
-  Alert,
-  Pressable,
-  Button,
-} from "react-native";
+import { StyleSheet, Text, View, SafeAreaView, Image } from "react-native";
 import { Amplify } from "aws-amplify";
-import {
-  Authenticator,
-  Theme,
-  useAuthenticator,
-  useTheme,
-} from "@aws-amplify/ui-react-native";
+import { Authenticator, Theme, useTheme } from "@aws-amplify/ui-react-native";
 import outputs from "./amplify_outputs.json";
 import FileList from "./src/FileList";
 import { createDrawerNavigator, DrawerItem } from "@react-navigation/drawer";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { ThemeProvider } from "@aws-amplify/ui-react-native";
-import { GraphQLError } from "graphql";
-
-import {
-  DrawerContentScrollView,
-  DrawerItemList,
-} from "@react-navigation/drawer";
 
 import Chat from "./src/Chat";
-import AntDesign from "@expo/vector-icons/AntDesign";
-import { generateClient } from "aws-amplify/api";
-import { Schema } from "./amplify/data/resource";
 import ChatContinue from "./src/ChatContinue";
 import CustomDrawerContent from "./components/custom-drawer-content";
 import { getConversations } from "./data.service";
@@ -91,8 +68,8 @@ const LoggedInAppExperience = () => {
       messages: c.messages,
     }));
     //console.log("convs are");
-    console.log(convs);
-    console.log("REFRESHING CONVERSATIONS!");
+    //console.log(convs);
+    //console.log("REFRESHING CONVERSATIONS!");
     setConversations([...convs]);
   };
 
@@ -244,11 +221,6 @@ const styles = StyleSheet.create({
     height: 200,
     borderRadius: 100,
   },
-  drawerContent: {
-    backgroundColor: "#232f3e", // Dark background for drawer
-  },
-  drawerLabel: {},
-  drawerSignOut: {},
 });
 
 export default App;

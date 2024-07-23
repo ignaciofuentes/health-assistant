@@ -8,4 +8,5 @@ interface Message {
   id: string;
   content: string;
   conversationId: string;
+  from: string;
 }

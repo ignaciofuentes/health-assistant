@@ -11,7 +11,7 @@ import {
 import { uploadData } from "aws-amplify/storage";
 import type { Schema } from "../amplify/data/resource";
 import { GraphQLError } from "graphql";
-import { DocumentPickerResult, getDocumentAsync } from "expo-document-picker";
+import { getDocumentAsync } from "expo-document-picker";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useAuthenticator } from "@aws-amplify/ui-react-native";
 import {
@@ -112,8 +112,6 @@ const FileList = () => {
 };
 
 const styles = StyleSheet.create({
-  fileItemContainer: { flexDirection: "row", alignItems: "center" },
-  fileItemText: { flex: 1, textAlign: "center" },
   listContainer: { flex: 1, margin: 10 },
   listItemSeparator: { backgroundColor: "lightgrey", height: 2 },
   button: {

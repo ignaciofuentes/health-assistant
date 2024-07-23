@@ -1,18 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { View, Button, Text, StyleSheet, FlatList } from "react-native";
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "../amplify/data/resource";
+import { View, Text, StyleSheet, FlatList } from "react-native";
 import { GraphQLError } from "graphql";
 import AntDesign from "@expo/vector-icons/AntDesign";
-import { useAuthenticator } from "@aws-amplify/ui-react-native";
 import { TextInput } from "react-native-gesture-handler";
-import { useFocusEffect } from "@react-navigation/native";
-import { askQuestion } from "../data.service";
-
-const client = generateClient<Schema>();
+import { askQuestion, makeid } from "../data.service";
+import MessageItemComponent from "../components/message-item";
 
 const ChatContinue = (props) => {
   const { conversation } = props.route.params;
+  //console.log(conversation);
   const [messages, setMessages] = useState<Message[]>();
   const [errors, setErrors] = useState<GraphQLError>();
   const [loading, setLoading] = useState<boolean>(false);
@@ -20,7 +16,7 @@ const ChatContinue = (props) => {
 
   useEffect(() => {
     props.navigation.setOptions({ title: conversation.title });
-    //console.log("test");
+    setTimeout(() => flatListRef.current.scrollToEnd({ animated: false }), 100);
   });
   const flatListRef = useRef(null);
 
@@ -28,27 +24,28 @@ const ChatContinue = (props) => {
 
   async function sendMessage() {
     {
-      // setMessages((prevMessages) => [
-      //   ...prevMessages,
-      //   { id: "asdasdasdasd", content: typedMessage, from: "me" },
-      // ]);
-      // const response = await client.models.Message.create({
-      //   content: typedMessage,
-      //   from: "me",
-      //   conversationId: conversation.id,
-      // });
-
+      var question = typedMessage;
+      conversation.messages.push({
+        id: makeid(5),
+        content: typedMessage,
+        from: "human",
+      });
+      setTypedMessage("");
       const response = await askQuestion({
         conversationId: conversation.id,
-        content: typedMessage,
+        content: question,
       });
 
       conversation.messages.push({
-        //id: response.data!.id || "sdfsdfsd",
-        id: "sdfsdfsdfsdfsdf",
-        content: typedMessage,
-        from: "me",
+        id: makeid(5),
+        content: response.content,
+        from: "ai",
       });
+      setTypedMessage("getting response");
+      setTimeout(
+        () => flatListRef.current.scrollToEnd({ animated: true }),
+        500
+      );
       setTypedMessage("");
     }
   }
@@ -72,7 +69,7 @@ const ChatContinue = (props) => {
           style={styles.listContainer}
           data={conversation.messages}
           renderItem={({ item }) => <MessageItemComponent {...item} />}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => makeid(5)}
           ListEmptyComponent={() => (
             <View
               style={{
@@ -119,67 +116,11 @@ const ChatContinue = (props) => {
 };
 
 const styles = StyleSheet.create({
-  fileItemContainer: { flexDirection: "row", alignItems: "center" },
-  fileItemText: { flex: 1, textAlign: "center" },
   listContainer: { flex: 1, margin: 10, backgroundColor: "white" },
-  listItemSeparator: { backgroundColor: "lightgrey" },
   textInputStyles: {
     flex: 1,
     padding: 10,
     margin: 10,
-  },
-  text: {
-    fontSize: 16,
-    lineHeight: 21,
-    fontWeight: "bold",
-    letterSpacing: 0.25,
-    color: "white",
-  },
-});
-
-const MessageItemComponent = (message: Message) => {
-  if (message.from === "me") {
-    return (
-      <View style={messageItemStyle.container}>
-        <Text
-          style={{
-            padding: 20,
-            backgroundColor: "#F4F4F4",
-            borderRadius: 20,
-            overflow: "hidden",
-          }}
-        >
-          {message.content}
-        </Text>
-      </View>
-    );
-  } else if (message.from === "bot") {
-    return (
-      <View style={messageItemStyle.containerBot}>
-        <AntDesign
-          name="wechat"
-          size={26}
-          color="gray"
-          style={{ marginRight: 10 }}
-        />
-        <Text style={{ flex: 1 }}>{message.content}</Text>
-      </View>
-    );
-  }
-};
-
-const messageItemStyle = StyleSheet.create({
-  container: {
-    flexDirection: "column",
-    alignItems: "flex-end",
-    justifyContent: "flex-start",
-    margin: 20,
-    borderRadius: 20,
-  },
-  containerBot: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginRight: 30,
   },
 });
 
