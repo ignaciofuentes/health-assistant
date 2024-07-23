@@ -17,43 +17,47 @@ export function makeid(length) {
   return result;
 }
 
-export const getConversations = async (): Promise<Conversation[]> => {
-  //console.log("GETTING CONVERSATIONS");
-  const session = await fetchAuthSession();
-  const token = session.tokens?.idToken!.toString();
-  //console.log(token);
-  const headers = { Authorization: token! };
+export const getConversations = async (): Promise<
+  Conversation[] | undefined
+> => {
   try {
-    var response = await fetch(`${baseUrl}/channels`, { headers });
+    // Fetch the authentication session
+    const session = await fetchAuthSession();
+    const token = session.tokens?.idToken?.toString();
 
-    //console.log(response.status);
-    if (!response.ok) {
-      alert("fetch error");
-      return;
+    if (!token) {
+      throw new Error("No token found");
     }
-    var data = await response.json();
-    //console.log(data.Items);
-    const convs: Conversation[] = data.Items.map((c) => {
-      //console.log(c.Items.length);
-      return {
-        id: c.sessionid,
-        title: c.History[0].data.content || "NO TITLE SET",
-        messages: c.History
-          ? c.History.map((d) => {
-              return {
-                id: makeid(5),
-                content: d.data.content,
-                from: d.data.type,
-              };
-            })
-          : [{ id: c.sessionid, content: c.sessionid, from: "me" }],
-        //messages: [{ id: c.sessionid, content: c.sessionid, from: "me" }],
-      };
-    });
-    return convs;
-  } catch (e) {
-    alert(e);
-    return [];
+
+    // Set up the headers with the authorization token
+    const headers = { Authorization: token };
+
+    // Fetch the conversations
+    const response = await fetch(`${baseUrl}/channels`, { headers });
+
+    if (!response.ok) {
+      throw new Error(`Fetch error: ${response.statusText}`);
+    }
+
+    // Parse the response data
+    const data = await response.json();
+
+    // Map the data to the Conversation type
+    const conversations: Conversation[] = data.Items.map((c) => ({
+      id: c.sessionid,
+      title: c.History[0]?.data?.content || "NO TITLE SET",
+      messages: c.History?.map((d) => ({
+        id: makeid(5),
+        content: d.data.content,
+        from: d.data.type,
+      })) ?? [{ id: c.sessionid, content: c.sessionid, from: "me" }],
+    }));
+
+    return conversations;
+  } catch (error) {
+    alert(`Error: ${error.message}`);
+    // Return undefined to signify an error occurred
+    return undefined;
   }
 };
 
@@ -90,8 +94,16 @@ export const askQuestion = async ({ conversationId, content }) => {
 };
 
 const client = generateClient<Schema>();
-export const getFilesSubscription = (params) => {
-  return client.models.File.observeQuery().subscribe(params);
+
+export const getFiles = async (): Promise<FileUpload[]> => {
+  var response = await client.models.File.list();
+  const data = response.data.map((f) => ({
+    id: f.id,
+    isDone: f.isDone,
+    path: f.path,
+    createdAt: f.createdAt,
+  }));
+  return data;
 };
 
 export const createFileRecord = async (params) => {

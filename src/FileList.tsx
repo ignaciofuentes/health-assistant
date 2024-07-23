@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 import {
   View,
   Button,
@@ -17,25 +17,40 @@ import { useAuthenticator } from "@aws-amplify/ui-react-native";
 import {
   createFileRecord,
   deleteFileRecord,
+  getFiles,
   getFilesSubscription,
 } from "../data.service";
 
-const FileList = () => {
+const FileList = ({ navigation }) => {
   const { user } = useAuthenticator((context) => [context.user]);
 
   const dateTimeNow = new Date();
-  const [files, setFiles] = useState<Schema["File"]["type"][]>([]);
+  const [files, setFiles] = useState<FileUpload[]>([]);
   const [errors, setErrors] = useState<GraphQLError>();
   const [loading, setLoading] = useState<boolean>(true);
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <AntDesign
+          name="reload1"
+          size={24}
+          style={{ marginRight: 20 }}
+          color="white"
+          onPress={reload}
+        />
+      ),
+    });
+  });
+
+  const reload = async () => {
+    setLoading(true);
+    const files = await getFiles();
+    setFiles(files);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const sub = getFilesSubscription({
-      next: ({ items }) => {
-        setFiles([...items]);
-        setLoading(false);
-      },
-    });
-    return () => sub.unsubscribe();
+    reload();
   }, []);
 
   const createFile = async () => {
@@ -60,6 +75,7 @@ const FileList = () => {
           path: `files/${doc.name}`,
           isDone: false,
         });
+        await reload();
       } else {
         alert("Error: No assets found.");
       }
@@ -79,31 +95,26 @@ const FileList = () => {
         flex: 1,
       }}
     >
-      {loading ? (
-        <Text>Loading</Text>
-      ) : (
-        <FlatList
-          style={styles.listContainer}
-          data={files}
-          renderItem={({ item }) => <FileItemComponent {...item} />}
-          keyExtractor={(item) => item.id}
-          ItemSeparatorComponent={() => (
-            <View style={styles.listItemSeparator} />
-          )}
-          ListEmptyComponent={() => (
-            <View
-              style={{
-                flexDirection: "row",
-                flex: 1,
-                justifyContent: "center",
-                marginTop: 300,
-              }}
-            >
-              <Text>You have not uploaded any files yet</Text>
-            </View>
-          )}
-        ></FlatList>
-      )}
+      <FlatList
+        style={styles.listContainer}
+        data={files}
+        renderItem={({ item }) => <FileItemComponent {...item} />}
+        keyExtractor={(item) => item.id}
+        ItemSeparatorComponent={() => <View style={styles.listItemSeparator} />}
+        ListEmptyComponent={() => (
+          <View
+            style={{
+              flexDirection: "row",
+              flex: 1,
+              justifyContent: "center",
+              marginTop: 300,
+            }}
+          >
+            <Text>You have not uploaded any files yet</Text>
+          </View>
+        )}
+      ></FlatList>
+
       <Pressable style={styles.button} onPress={createFile}>
         <Text style={styles.text}>Upload a File</Text>
       </Pressable>

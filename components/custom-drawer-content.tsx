@@ -13,23 +13,6 @@ import SignOutButton from "./sign-out-button";
 import { getConversations } from "../data.service";
 
 function CustomDrawerContent({ navigation, drawer, conversations }) {
-  //const [conversations, setConversations] = useState<Conversation[]>([]);
-
-  // useEffect(() => {
-  //   getConversations().then((conversations: any) => {
-  //     //console.log("BACK FROM FETCH");
-  //     //console.log(res.data);
-  //     //console.log(conversations);
-  //     const convs = conversations.map((c) => ({
-  //       id: c.id!,
-  //       title: c.title!,
-  //       messages: c.messages,
-  //     }));
-  //     //console.log("convs are");
-  //     //console.log(convs);
-  //     //setConversations([...convs]);
-  //   });
-  // }, []);
   return (
     <View
       style={{
@@ -59,9 +42,7 @@ function CustomDrawerContent({ navigation, drawer, conversations }) {
           size={24}
           color="white"
           onPress={() => {
-            //props.navigation.navigate("");
-            //alert("dsdfsf");
-            //props.navigation.toggleDrawer();
+            navigation.navigate("Health Assistant");
           }}
         />
       </View>
@@ -81,8 +62,6 @@ function CustomDrawerContent({ navigation, drawer, conversations }) {
               <View key={i}>
                 <Text
                   onPress={() => {
-                    //console.log("passing conversation");
-                    //console.log(c);
                     navigation.navigate("ChatContinue", {
                       conversation: c,
                     });

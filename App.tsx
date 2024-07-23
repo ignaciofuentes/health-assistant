@@ -1,7 +1,14 @@
 import "react-native-gesture-handler";
 import { useState, useEffect, createContext, useContext } from "react";
 
-import { StyleSheet, Text, View, SafeAreaView, Image } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  SafeAreaView,
+  Image,
+  Button,
+} from "react-native";
 import { Amplify } from "aws-amplify";
 import { Authenticator, Theme, useTheme } from "@aws-amplify/ui-react-native";
 import outputs from "./amplify_outputs.json";
@@ -15,6 +22,7 @@ import ChatContinue from "./src/ChatContinue";
 import CustomDrawerContent from "./components/custom-drawer-content";
 import { getConversations } from "./data.service";
 import { AppProvider } from "./AppContext";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 Amplify.configure(outputs);
 const Drawer = createDrawerNavigator();

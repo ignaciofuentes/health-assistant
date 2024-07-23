@@ -10,3 +10,10 @@ interface Message {
   conversationId: string;
   from: string;
 }
+
+interface FileUpload {
+  id: string;
+  path: string | null;
+  isDone: boolean | null;
+  createdAt: string;
+}

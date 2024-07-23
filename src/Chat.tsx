@@ -67,7 +67,9 @@ const Chat = ({ navigation }) => {
       }}
     >
       {message ? (
-        <MessageItemComponent {...message}></MessageItemComponent>
+        <View style={{ margin: 10 }}>
+          <MessageItemComponent {...message}></MessageItemComponent>
+        </View>
       ) : (
         <Text></Text>
       )}
@@ -84,6 +86,7 @@ const Chat = ({ navigation }) => {
           <Text>How can I help?</Text>
         ) : (
           <ActivityIndicator
+            color="#ff9900"
             style={{
               alignSelf: "flex-start",
               top: -80,
