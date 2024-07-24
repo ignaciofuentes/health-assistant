@@ -6,7 +6,6 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
-import { GraphQLError } from "graphql";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { TextInput } from "react-native-gesture-handler";
 import { askQuestion, makeid } from "../data.service";
@@ -15,9 +14,6 @@ import { useAppContext } from "../AppContext";
 
 const ChatContinue = (props) => {
   const { conversation } = props.route.params;
-  //console.log(conversation);
-  const [messages, setMessages] = useState<Message[]>();
-  const [errors, setErrors] = useState<GraphQLError>();
   const [loading, setLoading] = useState<boolean>(false);
   const [typedMessage, setTypedMessage] = useState<string>("");
   const { handleFunction } = useAppContext();
@@ -27,8 +23,6 @@ const ChatContinue = (props) => {
     setTimeout(() => flatListRef.current.scrollToEnd({ animated: false }), 100);
   });
   const flatListRef = useRef(null);
-
-  const dateTimeNow = new Date();
 
   async function sendMessage() {
     {
@@ -60,10 +54,6 @@ const ChatContinue = (props) => {
       setLoading(false);
       await handleFunction();
     }
-  }
-
-  if (errors) {
-    return <Text>{errors.message}</Text>;
   }
 
   return (

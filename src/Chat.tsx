@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, Image } from "react-native";
-import { GraphQLError } from "graphql";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { TextInput } from "react-native-gesture-handler";
 import { askQuestion, makeid } from "../data.service";
@@ -8,16 +7,11 @@ import { useAppContext } from "./../AppContext";
 import MessageItemComponent from "../components/message-item";
 
 const Chat = ({ navigation }) => {
-  const flatListRef = useRef(null);
   const { handleFunction } = useAppContext();
 
-  const dateTimeNow = new Date();
   const [message, setMessage] = useState<Message | null>(null);
 
-  const [errors, setErrors] = useState<GraphQLError>();
-  const [loading, setLoading] = useState<boolean>(false);
   const [typedMessage, setTypedMessage] = useState<string>("");
-  const [conversationId, setConversationId] = useState<string>("");
 
   async function sendMessage() {
     {
@@ -54,10 +48,6 @@ const Chat = ({ navigation }) => {
 
       await handleFunction();
     }
-  }
-
-  if (errors) {
-    return <Text>{errors.message}</Text>;
   }
 
   return (

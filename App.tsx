@@ -1,14 +1,13 @@
 import "react-native-gesture-handler";
-import { useState, useEffect, createContext, useContext } from "react";
-
 import {
-  StyleSheet,
-  Text,
-  View,
-  SafeAreaView,
-  Image,
-  Button,
-} from "react-native";
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  StrictMode,
+} from "react";
+
+import { StyleSheet, Text, View, SafeAreaView, Image } from "react-native";
 import { Amplify } from "aws-amplify";
 import { Authenticator, Theme, useTheme } from "@aws-amplify/ui-react-native";
 import outputs from "./amplify_outputs.json";
@@ -22,7 +21,6 @@ import ChatContinue from "./src/ChatContinue";
 import CustomDrawerContent from "./components/custom-drawer-content";
 import { getConversations } from "./data.service";
 import { AppProvider } from "./AppContext";
-import AntDesign from "@expo/vector-icons/AntDesign";
 
 Amplify.configure(outputs);
 const Drawer = createDrawerNavigator();
@@ -67,32 +65,21 @@ const LoggedInAppExperience = () => {
 
   const handleFunction = async () => {
     let newConversations = await getConversations();
-    //console.log("BACK FROM FETCH");
-    //console.log(res.data);
-    //console.log(conversations);
     const convs = newConversations.map((c) => ({
       id: c.id!,
       title: c.title!,
       messages: c.messages,
     }));
-    //console.log("convs are");
-    //console.log(convs);
-    //console.log("REFRESHING CONVERSATIONS!");
     setConversations([...convs]);
   };
 
   useEffect(() => {
     getConversations().then((conversations: any) => {
-      //console.log("BACK FROM FETCH");
-      //console.log(res.data);
-      //console.log(conversations);
       const convs = conversations.map((c) => ({
         id: c.id!,
         title: c.title!,
         messages: c.messages,
       }));
-      //console.log("convs are");
-      //console.log(convs);
       setConversations([...convs]);
     });
   }, []);

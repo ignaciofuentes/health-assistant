@@ -1,7 +1,6 @@
 import { useState, useEffect, useLayoutEffect } from "react";
 import {
   View,
-  Button,
   Text,
   StyleSheet,
   FlatList,
@@ -9,8 +8,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { uploadData } from "aws-amplify/storage";
-import type { Schema } from "../amplify/data/resource";
-import { GraphQLError } from "graphql";
 import { getDocumentAsync } from "expo-document-picker";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import { useAuthenticator } from "@aws-amplify/ui-react-native";
@@ -18,17 +15,13 @@ import {
   createFileRecord,
   deleteFileRecord,
   getFiles,
-  getFilesSubscription,
   updateFileRecord,
 } from "../data.service";
 
 const FileList = ({ navigation }) => {
   const { user } = useAuthenticator((context) => [context.user]);
 
-  const dateTimeNow = new Date();
   const [files, setFiles] = useState<FileUpload[]>([]);
-  const [errors, setErrors] = useState<GraphQLError>();
-  const [loading, setLoading] = useState<boolean>(true);
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -37,21 +30,23 @@ const FileList = ({ navigation }) => {
           size={24}
           style={{ marginRight: 20 }}
           color="white"
-          onPress={reload}
+          onPress={fetchData}
         />
       ),
     });
   });
+  const handleDelete = (id: string) => {
+    setFiles((prevFiles) => prevFiles.filter((file) => file.id !== id));
+  };
 
-  const reload = async () => {
-    setLoading(true);
-    const files = await getFiles();
-    setFiles(files);
-    setLoading(false);
+  const fetchData = async () => {
+    console.log("reloading");
+    const data = await getFiles();
+    setFiles(data);
   };
 
   useEffect(() => {
-    reload();
+    fetchData();
   }, []);
 
   const createFile = async () => {
@@ -76,7 +71,7 @@ const FileList = ({ navigation }) => {
           path: `files/${doc.name}`,
           isDone: false,
         });
-        await reload();
+        await fetchData();
       } else {
         alert("Error: No assets found.");
       }
@@ -85,10 +80,6 @@ const FileList = ({ navigation }) => {
       console.error(error);
     }
   };
-
-  if (errors) {
-    return <Text>{errors.message}</Text>;
-  }
 
   return (
     <View
@@ -99,8 +90,11 @@ const FileList = ({ navigation }) => {
       <FlatList
         style={styles.listContainer}
         data={files}
-        renderItem={({ item }) => <FileItemComponent {...item} />}
-        keyExtractor={(item) => item.id}
+        extraData={files}
+        renderItem={({ item }) => (
+          <FileItemComponent file={item} onDelete={handleDelete} />
+        )}
+        keyExtractor={(file) => file.id}
         ItemSeparatorComponent={() => <View style={styles.listItemSeparator} />}
         ListEmptyComponent={() => (
           <View
@@ -143,7 +137,41 @@ const styles = StyleSheet.create({
   },
 });
 
-const FileItemComponent = (file: Schema["File"]["type"]) => {
+type FileItemProps = {
+  file: FileUpload;
+  onDelete: (id: string) => void;
+};
+const FileItemComponent: React.FC<FileItemProps> = ({ file, onDelete }) => {
+  useEffect(() => {
+    setIsDone(file.isDone);
+  }, [file]);
+  console.log(file);
+  const [isDone, setIsDone] = useState(file.isDone);
+
+  const toggleStatus = async () => {
+    const originalIsDone = isDone;
+    setIsDone((prevIsDone) => !prevIsDone); // Optimistic update
+
+    try {
+      await updateFileRecord({
+        id: file.id,
+        isDone: !originalIsDone,
+      });
+    } catch (error) {
+      console.error("Failed to update file status", error);
+      setIsDone(originalIsDone); // Revert to original state on error
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deleteFileRecord(file);
+      onDelete(file.id); // Inform the parent component to remove this item
+    } catch (error) {
+      console.error("Failed to delete file", error);
+    }
+  };
+
   return (
     <View style={fileItemStyle.container}>
       <View style={fileItemStyle.column1}>
@@ -154,37 +182,25 @@ const FileItemComponent = (file: Schema["File"]["type"]) => {
         <Text style={fileItemStyle.textBottom}>{file.createdAt}</Text>
       </View>
       <View style={fileItemStyle.column3}>
-        {!file.isDone ? (
-          <Pressable
-            onPress={async () => {
-              await updateFileRecord({
-                id: file.id,
-                isDone: !file.isDone,
-              });
-            }}
-          >
+        <Pressable onPress={toggleStatus}>
+          {!isDone ? (
             <ActivityIndicator size="small" color="#0000ff" />
-          </Pressable>
-        ) : (
-          <AntDesign
-            name="checkcircle"
-            size={24}
-            style={{ marginLeft: 10 }}
-            color="green"
-            onPress={async () => {
-              //await client.models.File.delete(file);
-            }}
-          />
-        )}
+          ) : (
+            <AntDesign
+              name="checkcircle"
+              size={24}
+              style={{ marginLeft: 10 }}
+              color="green"
+            />
+          )}
+        </Pressable>
 
         <AntDesign
           name="delete"
           size={24}
           style={{ marginLeft: 10 }}
           color="black"
-          onPress={async () => {
-            await deleteFileRecord(file);
-          }}
+          onPress={handleDelete}
         />
       </View>
     </View>
