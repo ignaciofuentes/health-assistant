@@ -11,6 +11,7 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 import { TextInput } from "react-native-gesture-handler";
 import { askQuestion, makeid } from "../data.service";
 import MessageItemComponent from "../components/message-item";
+import { useAppContext } from "../AppContext";
 
 const ChatContinue = (props) => {
   const { conversation } = props.route.params;
@@ -19,6 +20,7 @@ const ChatContinue = (props) => {
   const [errors, setErrors] = useState<GraphQLError>();
   const [loading, setLoading] = useState<boolean>(false);
   const [typedMessage, setTypedMessage] = useState<string>("");
+  const { handleFunction } = useAppContext();
 
   useEffect(() => {
     props.navigation.setOptions({ title: conversation.title });
@@ -38,6 +40,7 @@ const ChatContinue = (props) => {
         from: "human",
       });
       setTypedMessage("");
+      console.log(conversation.id);
       const response = await askQuestion({
         conversationId: conversation.id,
         content: question,
@@ -55,6 +58,7 @@ const ChatContinue = (props) => {
       );
       setTypedMessage("");
       setLoading(false);
+      await handleFunction();
     }
   }
 

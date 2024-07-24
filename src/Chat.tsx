@@ -23,22 +23,23 @@ const Chat = ({ navigation }) => {
     {
       const askedQuestion = typedMessage;
       const title = askedQuestion.substring(0, 20);
+      const conversationId = makeid(5);
       setTypedMessage("");
       setMessage({
         from: "human",
         content: askedQuestion,
         id: makeid(5),
-        conversationId: makeid(5),
+        conversationId: conversationId,
       });
       setTypedMessage("");
 
       var response2 = await askQuestion({
-        conversationId: makeid(5),
+        conversationId: conversationId,
         content: askedQuestion,
       });
 
       const conv = {
-        id: title,
+        id: conversationId,
         title: title,
         messages: [
           { id: title, content: askedQuestion, from: "human" },

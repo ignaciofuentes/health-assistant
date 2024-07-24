@@ -19,6 +19,7 @@ import {
   deleteFileRecord,
   getFiles,
   getFilesSubscription,
+  updateFileRecord,
 } from "../data.service";
 
 const FileList = ({ navigation }) => {
@@ -155,11 +156,11 @@ const FileItemComponent = (file: Schema["File"]["type"]) => {
       <View style={fileItemStyle.column3}>
         {!file.isDone ? (
           <Pressable
-            onPress={() => {
-              // client.models.File.update({
-              //   id: file.id,
-              //   isDone: !file.isDone,
-              // });
+            onPress={async () => {
+              await updateFileRecord({
+                id: file.id,
+                isDone: !file.isDone,
+              });
             }}
           >
             <ActivityIndicator size="small" color="#0000ff" />

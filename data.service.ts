@@ -113,3 +113,7 @@ export const createFileRecord = async (params) => {
 export const deleteFileRecord = async (params) => {
   return client.models.File.delete(params);
 };
+
+export const updateFileRecord = async (params) => {
+  return client.models.File.update(params);
+};
