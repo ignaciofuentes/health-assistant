@@ -40,7 +40,6 @@ const FileList = ({ navigation }) => {
   };
 
   const fetchData = async () => {
-    console.log("reloading");
     const data = await getFiles();
     setFiles(data);
   };
@@ -145,7 +144,6 @@ const FileItemComponent: React.FC<FileItemProps> = ({ file, onDelete }) => {
   useEffect(() => {
     setIsDone(file.isDone);
   }, [file]);
-  console.log(file);
   const [isDone, setIsDone] = useState(file.isDone);
 
   const toggleStatus = async () => {

@@ -62,7 +62,6 @@ export const getConversations = async (): Promise<
 };
 
 export const askQuestion = async ({ conversationId, content }) => {
-  //console.log(content);
   const session = await fetchAuthSession();
   const token = session.tokens?.idToken?.toString();
   if (!token) {
@@ -80,8 +79,6 @@ export const askQuestion = async ({ conversationId, content }) => {
     }
   );
   const data = await response.json();
-  //console.log("THE ASK QUESTION RESPONSE IS");
-  //console.log(data);
   if (data.Items && data.status === "success") {
     const llmResponse = data.Items[0];
     return { id: makeid(5), content: llmResponse };

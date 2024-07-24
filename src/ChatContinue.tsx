@@ -1,4 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useLayoutEffect,
+} from "react";
 import {
   View,
   Text,
@@ -18,6 +24,22 @@ const ChatContinue = (props) => {
   const [typedMessage, setTypedMessage] = useState<string>("");
   const { handleFunction } = useAppContext();
 
+  useLayoutEffect(() => {
+    props.navigation.setOptions({
+      headerRight: () => (
+        <AntDesign
+          name="edit"
+          size={24}
+          style={{ marginRight: 20 }}
+          color="white"
+          onPress={() => {
+            props.navigation.navigate("Health Assistant");
+          }}
+        />
+      ),
+    });
+  });
+
   useEffect(() => {
     props.navigation.setOptions({ title: conversation.title });
     setTimeout(() => flatListRef.current.scrollToEnd({ animated: false }), 100);
@@ -34,7 +56,6 @@ const ChatContinue = (props) => {
         from: "human",
       });
       setTypedMessage("");
-      console.log(conversation.id);
       const response = await askQuestion({
         conversationId: conversation.id,
         content: question,
